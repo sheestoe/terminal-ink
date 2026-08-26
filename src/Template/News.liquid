@@ -1,47 +1,43 @@
-﻿<div style="background-color: white; width: 800px; height: 480px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
+﻿<head>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<div style="background-color: white; width: 800px; height: 480px; padding: 20px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
   
   <!-- Header -->
-  <div style="padding: 15px 30px; border-bottom: 4px solid black; display: flex; justify-content: space-between; align-items: center; background: black; color: white;">
-    <div style="font-size: 32px; font-weight: 800; letter-spacing: 2px;">NOTÍCIAS</div>
-    <div style="font-size: 24px; font-weight: bold; font-style: italic;">G1 Globo</div>
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 20px;">
+    <div style="font-size: 36px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+      <i class="ph ph-newspaper" style="margin-right: 10px;"></i>MANCHETES
+    </div>
+    <div style="font-size: 20px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
+      Resumo do Dia
+    </div>
   </div>
 
-  <!-- Main Content -->
-  <div style="display: flex; flex-direction: column; flex: 1; padding: 25px;">
+  <!-- 3 Columns -->
+  <div style="display: flex; gap: 30px; flex: 1;">
     
-    <!-- Headline (First News) -->
-    <div style="border-bottom: 2px solid black; padding-bottom: 20px; margin-bottom: 20px;">
-      <div style="font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px;">Manchete Principal</div>
-      <div style="font-size: 42px; font-weight: 800; line-height: 1.1; letter-spacing: -1px;">
-        {{ news[0].title }}
-      </div>
-    </div>
-
-    <!-- Remaining News Grid -->
-    <div style="display: flex; gap: 30px; flex: 1;">
+    {% for channel in news %}
+    <div style="flex: 1; display: flex; flex-direction: column;">
       
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
-        <div style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 10px;">Destaque 2</div>
-        <div style="font-size: 24px; font-weight: 600; line-height: 1.2;">
-          {{ news[1].title }}
-        </div>
+      <!-- Channel Title -->
+      <div style="font-size: 20px; font-weight: 800; text-transform: uppercase; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 15px;">
+        {{ channel.name }}
       </div>
 
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
-        <div style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 10px;">Destaque 3</div>
-        <div style="font-size: 24px; font-weight: 600; line-height: 1.2;">
-          {{ news[2].title }}
+      <!-- News Items -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for item in channel.items limit: 4 %}
+        <div style="display: flex; gap: 8px;">
+          <div style="font-size: 16px; margin-top: 2px;"><i class="ph-fill ph-caret-right"></i></div>
+          <div style="font-size: 17px; font-weight: 600; line-height: 1.2;">
+            {{ item.title }}
+          </div>
         </div>
+        {% endfor %}
       </div>
-
-      <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
-        <div style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 10px;">Destaque 4</div>
-        <div style="font-size: 24px; font-weight: 600; line-height: 1.2;">
-          {{ news[3].title }}
-        </div>
-      </div>
-
+      
     </div>
+    {% endfor %}
 
   </div>
 </div>

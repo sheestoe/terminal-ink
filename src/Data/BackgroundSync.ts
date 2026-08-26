@@ -152,17 +152,49 @@ export async function ensureDefaultConfig() {
     }
 }
 
-export function startBackgroundSync() {
-    console.log("Starting background sync cron jobs...");
-    ensureDefaultConfig();
-    syncWeatherData();
-    syncNewsData();
-    syncTodoistData();
+export async function checkAndSync() {
+    try {
+        const now = Date.now();
 
-    setInterval(syncWeatherData, 2 * 60 * 60 * 1000);
-    setInterval(syncNewsData, 2 * 60 * 60 * 1000);
-    setInterval(syncTodoistData, 15 * 60 * 1000);
+        // 1. WEATHER (Expires at 6:00 AM next day, or if forced)
+        const weatherExpire = await redis.get('expire:weather');
+        if (!weatherExpire || now > parseInt(weatherExpire as string)) {
+            await syncWeatherData();
+            
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(6, 0, 0, 0);
+            await redis.set('expire:weather', tomorrow.getTime().toString());
+        }
+
+        // 2. NEWS (Expires every 2 hours, or if forced)
+        const newsExpire = await redis.get('expire:news');
+        if (!newsExpire || now > parseInt(newsExpire as string)) {
+            await syncNewsData();
+            await redis.set('expire:news', (now + 2 * 60 * 60 * 1000).toString());
+        }
+
+        // 3. TODOIST (Expires every 15 minutes, or if forced)
+        const todoistExpire = await redis.get('expire:todoist');
+        if (!todoistExpire || now > parseInt(todoistExpire as string)) {
+            await syncTodoistData();
+            await redis.set('expire:todoist', (now + 15 * 60 * 1000).toString());
+        }
+
+    } catch (e) {
+        console.error("Error in checkAndSync:", e);
+    }
 }
+
+export function startBackgroundSync() {
+    console.log("Starting unified background sync engine...");
+    ensureDefaultConfig();
+    
+    // Run immediately, then check every 60 seconds
+    checkAndSync();
+    setInterval(checkAndSync, 60 * 1000);
+}
+
 
 
 

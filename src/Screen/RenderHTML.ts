@@ -16,8 +16,8 @@ export async function initPuppeteer() {
     }
     const browser = await puppeteer.launch({
         headless: true,
-        protocolTimeout: 5000,
-        timeout: 5000,
+        protocolTimeout: 30000,
+        timeout: 30000,
         args: [
             '--no-sandbox',
             '--disable-web-security',
@@ -69,3 +69,4 @@ export async function renderToImage(html: string) {
         isRendering = false;
     }
 }
+

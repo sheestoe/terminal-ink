@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src/",
+    "noEmit": true,
+    "target": "esnext",
+    "module": "nodenext",
+    "jsx": "react-jsx",
+    "strict": true,
+    "erasableSyntaxOnly": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedParameters": true
+  }
+}

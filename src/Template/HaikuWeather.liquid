@@ -1,0 +1,223 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.30.0/dist/tabler-icons.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Esteban&family=Noto+Emoji:wght@300..700&display=swap" rel="stylesheet">
+
+<style>
+  img.background.haikuweather  {
+    width: 100%;
+    height: 100%;
+    object-position: center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+  }
+  .haiku {
+    z-index: 2;
+  }
+  .haiku .title {
+    font-family: "Esteban", serif;
+    font-weight: 600;
+    font-style: normal;
+    line-height: 1.4;
+  }
+</style>
+
+{% assign weather_code = data.daily.weather_code[0] | default: 0 %}
+{% assign minTemp = data.daily.temperature_2m_min[0] | default: 0 | round %}
+{% assign maxTemp = data.daily.temperature_2m_max[0] | default: 0 | round %}
+{% assign tempUnit = data.daily_units.temperature_2m_max | default: '' %}
+
+{% assign rand = "now" | date: "%S" | modulo: 6 %}
+{% capture haiku %}
+{% case weather_code %}
+  {% when 0 %}
+    {% case rand %}
+      {% when 0 %}Sun shines from above,<br>Not a cloud in the blue sky,<br>Perfect day is here.
+      {% when 1 %}Golden light pours down,<br>Warmth wraps around every leaf,<br>Earth glows, full of life.
+      {% when 2 %}Not a shadow falls,<br>The sky is an endless blue,<br>Summer holds its breath.
+      {% when 3 %}Blue sky stretches wide,<br>Sunlight dances on the grass,<br>Nothing but pure light.
+      {% when 4 %}Bright and open air,<br>The whole world feels wide awake,<br>Sun claims every hour.
+      {% when 5 %}Clear from edge to edge,<br>The sun rules a spotless sky,<br>Warmth on every face.
+    {% endcase %}
+  {% when 1 or 2 or 3 %}
+    {% case rand %}
+      {% when 0 %}Clouds drift slowly by,<br>Painting shadows on the ground,<br>Sun plays hide and seek.
+      {% when 1 %}White clouds roll on through,<br>Light and shadow trade their turns,<br>Sky cannot decide.
+      {% when 2 %}Patches of blue sky,<br>Cotton clouds break up the light,<br>Day walks in and out.
+      {% when 3 %}Half sun and half shade,<br>Clouds wander across the blue,<br>Light shifts on the hills.
+      {% when 4 %}Soft clouds pass on high,<br>Brief shadows sweep through the fields,<br>Then the sun returns.
+      {% when 5 %}A drift of white wool,<br>Floats between the sun and me,<br>Warm, then cool, then warm.
+    {% endcase %}
+  {% when 45 or 48 %}
+    {% case rand %}
+      {% when 0 %}Thick mist hides the world,<br>Trees stand like ghosts in the grey,<br>Silent, heavy air.
+      {% when 1 %}A blanket of fog,<br>Swallowing the road ahead,<br>Lost in quiet white.
+      {% when 2 %}The distance is gone,<br>Wrapped in cold and damp embrace,<br>Mystery remains.
+      {% when 3 %}Soft grey fills the space,<br>Muffling every passing sound,<br>Morning takes its time.
+      {% when 4 %}Walking in a cloud,<br>Only what is near is real,<br>All else fades away.
+      {% when 5 %}Vapor hugs the ground,<br>Turning sunlight into pearl,<br>World stands very still.
+    {% endcase %}
+  {% when 51 or 53 or 55 %}
+    {% case rand %}
+      {% when 0 %}Fine drops fill the air,<br>More like mist than proper rain,<br>Dampness settles in.
+      {% when 1 %}Soft spray hits the glass,<br>A constant, quiet grey chill,<br>Sky just slowly weeps.
+      {% when 2 %}Barely falling down,<br>Water hangs upon the wind,<br>Everything turns damp.
+      {% when 3 %}Thin rain falls so slow,<br>Coating leaves in tiny beads,<br>Quiet, soaking wet.
+      {% when 4 %}Grey sky sifts its tears,<br>Soft enough to barely feel,<br>Deep enough to chill.
+      {% when 5 %}Misty, drifting wet,<br>Cloud descending to the street,<br>Soft continuous rain.
+    {% endcase %}
+  {% when 61 or 63 %}
+    {% case rand %}
+      {% when 0 %}Drops fall from the grey,<br>Tapping softly on the leaves,<br>Earth drinks it all in.
+      {% when 1 %}Steady rhythm plays,<br>Puddles forming in the street,<br>Sky begins to wash.
+      {% when 2 %}Rain sings on the roof,<br>Washing dust off tired roads,<br>Silver threads come down.
+      {% when 3 %}Water joins the earth,<br>Dark clouds settle overhead,<br>Quiet, steady rain.
+      {% when 4 %}Raincoat weather now,<br>Streets shine like dark riverbeds,<br>Drops fall in straight lines.
+      {% when 5 %}Gentle showers fall,<br>Nourishing the waiting ground,<br>Sky sheds heavy tears.
+    {% endcase %}
+  {% when 71 or 73 %}
+    {% case rand %}
+      {% when 0 %}White flakes falling down,<br>Blanket covering the earth,<br>Peaceful winter sleep.
+      {% when 1 %}Snow fills every gap,<br>Silence follows every flake,<br>The world turns to white.
+      {% when 2 %}Footprints in the snow,<br>Each step swallowed by the cold,<br>Nothing stays untouched.
+      {% when 3 %}Snowflakes drift and fall,<br>Soft and slow they crown the trees,<br>Hushed and gentle white.
+      {% when 4 %}Cold and quiet air,<br>Each flake spins its way to earth,<br>Winter's soft embrace.
+      {% when 5 %}The rooftops turn white,<br>Snow settles on every branch,<br>Stillness fills the world.
+    {% endcase %}
+  {% when 75 %}
+    {% case rand %}
+      {% when 0 %}White flakes falling down,<br>Blanket covering the earth,<br>Peaceful winter sleep.
+      {% when 1 %}Snow fills every gap,<br>Silence follows every flake,<br>The world turns to white.
+      {% when 2 %}Footprints in the snow,<br>Each step swallowed by the cold,<br>Nothing stays untouched.
+      {% when 3 %}Heavy snow pours down,<br>Drifts pile deep against the doors,<br>White buries it all.
+      {% when 4 %}Thick flakes crowd the air,<br>The road vanishes in white,<br>Winter takes the world.
+      {% when 5 %}Snow falls without end,<br>Everything soft and rounded,<br>Deep and silent white.
+    {% endcase %}
+  {% when 80 %}
+    {% case rand %}
+      {% when 0 %}Sudden burst of rain,<br>Washing everything away,<br>Storm will soon be calm.
+      {% when 1 %}Rain arrives in waves,<br>Heavy, then gone in a breath,<br>Sun waits for its turn.
+      {% when 2 %}Clouds open and close,<br>Downpour followed by silence,<br>Sky makes up its mind.
+      {% when 3 %}A quick passing squall,<br>Rain sweeps through and then is gone,<br>Wet leaves catch the light.
+      {% when 4 %}Brief shower falls fast,<br>The street shines and then it dries,<br>Sun peeks through the grey.
+      {% when 5 %}Rain comes then it leaves,<br>Puddles gleam beneath blue breaks,<br>Fickle summer sky.
+    {% endcase %}
+  {% when 82 %}
+    {% case rand %}
+      {% when 0 %}Sudden burst of rain,<br>Washing everything away,<br>Storm will soon be calm.
+      {% when 1 %}Rain arrives in waves,<br>Heavy, then gone in a breath,<br>Sun waits for its turn.
+      {% when 2 %}Clouds open and close,<br>Downpour followed by silence,<br>Sky makes up its mind.
+      {% when 3 %}Fierce and heavy burst,<br>Rain slams down in blinding sheets,<br>Then just as fast, calm.
+      {% when 4 %}Violent shower falls,<br>Streets flood in a sudden roar,<br>Gone before you blink.
+      {% when 5 %}The sky bursts open,<br>Torrents crash then quickly fade,<br>Steam rises from stone.
+    {% endcase %}
+  {% when 95 %}
+    {% case rand %}
+      {% when 0 %}Lightning strikes the dark,<br>Rolling thunder shakes the ground,<br>Nature's power wakes.
+      {% when 1 %}Sky splits white and bright,<br>Seconds pass, then the boom comes,<br>Storm speaks with its fist.
+      {% when 2 %}Dark clouds crack apart,<br>Thunder rolls from hill to hill,<br>Rain falls without pause.
+      {% when 3 %}Flash lights up the night,<br>The heavens growl and rumble,<br>Rain sweeps down in sheets.
+      {% when 4 %}Thunder shakes the air,<br>Bright forks tear across the sky,<br>Storm rules over all.
+      {% when 5 %}The night turns to day,<br>Then black, then the crashing boom,<br>Wild sky, restless earth.
+    {% endcase %}
+  {% when 96 %}
+    {% case rand %}
+      {% when 0 %}Ice falls from the storm,<br>Crashing loud upon the roof,<br>Fierce and angry sky.
+      {% when 1 %}Hail drums on the glass,<br>Thunder joins the rattling beat,<br>Sky throws all it has.
+      {% when 2 %}White stones pelt the earth,<br>Lightning splits the swirling black,<br>Run for shelter now.
+      {% when 3 %}Hailstones bounce and crack,<br>Thunder booms across the dark,<br>Sky unleashes wrath.
+      {% when 4 %}Ice batters the ground,<br>Lightning rips the churning clouds,<br>Storm holds nothing back.
+      {% when 5 %}Frozen rain comes hard,<br>Rattling loud on roof and street,<br>Sky in furious rage.
+    {% endcase %}
+  {% else %}
+    Weather is unknown,<br>Looking out into the sky,<br>What will today bring?
+{% endcase %}
+{% endcapture %}
+
+{% capture weatherIcon %}
+{% case weather_code %}
+  {% when 0 %}sun
+  {% when 1 %}cloud
+  {% when 2 %}cloud
+  {% when 3 %}cloud
+  {% when 45 %}cloud-fog
+  {% when 48 %}cloud-fog
+  {% when 51 %}cloud-rain
+  {% when 53 %}cloud-rain
+  {% when 55 %}cloud-rain
+  {% when 56 %}cloud-rain
+  {% when 57 %}cloud-rain
+  {% when 61 %}cloud-rain
+  {% when 63 %}cloud-rain
+  {% when 65 %}cloud-rain
+  {% when 66 %}cloud-rain
+  {% when 67 %}cloud-rain
+  {% when 71 %}cloud-snow
+  {% when 73 %}cloud-snow
+  {% when 75 %}cloud-snow
+  {% when 77 %}snowflake
+  {% when 80 %}cloud-rain
+  {% when 81 %}cloud-rain
+  {% when 82 %}cloud-rain
+  {% when 85 %}cloud-snow
+  {% when 86 %}cloud-snow
+  {% when 95 %}cloud-storm
+  {% when 96 %}cloud-bolt
+  {% when 99 %}cloud-bolt
+  {% else %}cloud
+{% endcase %}
+{% endcapture %}
+
+{% capture todaysWeather %}
+{% case weather_code %}
+  {% when 0 %}Sunny and clear
+  {% when 1 %}Partly cloudy
+  {% when 2 %}Partly cloudy
+  {% when 3 %}Partly cloudy
+  {% when 45 %}Foggy
+  {% when 48 %}Foggy
+  {% when 51 %}Drizzle
+  {% when 53 %}Drizzle
+  {% when 55 %}Drizzle
+  {% when 56 %}Freezing drizzle
+  {% when 57 %}Freezing drizzle
+  {% when 61 %}Rainy
+  {% when 63 %}Rainy
+  {% when 65 %}Rainy
+  {% when 66 %}Freezing rain
+  {% when 67 %}Freezing rain
+  {% when 71 %}Snowy
+  {% when 73 %}Snowy
+  {% when 75 %}Snowy
+  {% when 77 %}Snow grains
+  {% when 80 %}Showers
+  {% when 81 %}Showers
+  {% when 82 %}Showers
+  {% when 85 %}Snow showers
+  {% when 86 %}Snow showers
+  {% when 95 %}Thunderstorms
+  {% when 96 %}Storm with hail
+  {% when 99 %}Storm with hail
+  {% else %}Changeable weather
+{% endcase %}
+{% endcapture %}
+
+{% assign backgroundImage = "https://www.trmnlplugins.xyz/haikuweather/images/" | append: weather_code | append: ".jpg" %}
+
+<div class="haikuweather layout layout--col col--start gap--space-between">
+  <div class="haiku m--20">
+    <div class="bg--gray-70 col--span-1 px--10 py--4 rounded-tl--large rounded-br--large relative flex flex--col">
+      <div class="title title--xlarge">
+        {{ haiku | strip }}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="title_bar m--3 rounded" style="z-index: 3;">
+  <i class="ti ti-{{ weatherIcon | strip }} image-stroke image-stroke--default"></i>
+  <span class="title">{{ todaysWeather | strip }} ({{ minTemp }}/{{ maxTemp }} {{ tempUnit }})</span>
+  <span class="instance" style="color: #888;">Powered by Open-Meteo.com</span>
+</div>
+<img class="h--full w--full background haikuweather image image-dither image--cover image--dither" src="{{ backgroundImage }}">

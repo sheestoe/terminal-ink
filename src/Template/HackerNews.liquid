@@ -1,0 +1,53 @@
+<div class="screen">
+    <div class="view view--full">
+        <div class="layout">
+            <div class="columns">
+                <div class="column">
+                    <div class="list">
+                        {% assign first = hackerNews | slice: 0, 6 %}
+                        {% for post in first %}
+                            <div class="item">
+                                <div class="meta">
+                                    <span class="index">{{ forloop.index }}</span>
+                                </div>
+                                <div class="content">
+                                    <span class="title title--small">{{ post.title }}</span>
+                                    <div class="flex gap--small">
+                                        <span class="label label--small label--underline">{{ post.score }} votes</span>
+                                        <span class="label label--small label--underline">by {{ post.by }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="column">
+                    <div class="list">
+                        {% assign second = hackerNews | slice: 6, 6 %}
+                        {% for post in second %}
+                            <div class="item">
+                                <div class="meta">
+                                    <span class="index">{{ forloop.index | plus: 6 }}</span>
+                                </div>
+                                <div class="content">
+                                    <span class="title title--small">{{ post.title }}</span>
+                                    <div class="flex gap--small">
+                                        <span class="label label--small label--underline">{{ post.score }} votes</span>
+                                        <span class="label label--small label--underline">by {{ post.by }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="title_bar">
+            <img class="image" src="https://usetrmnl.com/images/plugins/hacker-news--render.svg"/>
+            <span class="title">Hacker News</span>
+            <span class="instance">liquid plugin</span>
+        </div>
+    </div>
+</div>

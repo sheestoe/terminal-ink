@@ -8,8 +8,9 @@ COPY . ./
 # Production stage
 FROM node:22-alpine3.21
 WORKDIR /app
-RUN apk add --no-cache chromium
+RUN apk add --no-cache chromium font-noto ttf-freefont
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 COPY --from=builder /app ./
 CMD ["node", "--import", "tsx", "src/Main.ts"]
+

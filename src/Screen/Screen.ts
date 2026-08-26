@@ -30,16 +30,16 @@ export async function checkImageUrl(url: string): Promise<boolean> {
     try {
         response = await fetch(url);
     } catch (error: any) {
-        console.error(Failed to check image \ - \);
+        console.error(`Failed to check image ${url} - ${error.message}`);
         return false;
     }
     if (!response.ok) {
-        console.error(Failed to check image \ - got \ code);
+        console.error(`Failed to check image ${url} - got ${response.status} code`);
         return false;
     }
     const data = await response.text();
     if (data.length < 1000) {
-        console.error(Failed to check image \ - no content);
+        console.error(`Failed to check image ${url} - no content`);
         return false;
     }
     return true;

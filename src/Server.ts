@@ -1,4 +1,4 @@
-import express, {NextFunction, Request, Response} from "express";
+﻿import express, {NextFunction, Request, Response} from "express";
 import {
     SECRET_KEY,
     SERVER_HOST,
@@ -34,6 +34,36 @@ function isSecretKeyValid(req: Request, res: Response) {
     }
     return true;
 }
+
+import { google } from 'googleapis';
+
+const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    (process.env.PUBLIC_URL_ORIGIN || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/api/auth/google/callback'
+);
+
+app.get('/api/auth/google', (req: Request, res: Response) => {
+    if (!isSecretKeyValid(req, res)) return;
+    const url = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/calendar.readonly'],
+        prompt: 'consent'
+    });
+    res.redirect(url);
+});
+
+app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
+    const code = req.query.code as string;
+    try {
+        const { tokens } = await oauth2Client.getToken(code);
+        await redis.set('config:google_tokens', JSON.stringify(tokens));
+        res.send("<h1>Google Calendar Authenticated!</h1><p>You can close this window. Background sync will use the new tokens.</p>");
+    } catch (e) {
+        console.error("Auth error", e);
+        res.status(500).send("Auth Failed");
+    }
+});
 
 app.get(ROUTE_PLUGIN_REDIRECT, async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) {
@@ -78,6 +108,9 @@ if (!IS_TEST_ENV) {
         }
     })
 }
+
+
+
 
 
 

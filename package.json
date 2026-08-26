@@ -12,6 +12,7 @@
   "dependencies": {
     "@upstash/redis": "^1.38.3",
     "express": "^5.1.0",
+    "googleapis": "^176.0.0",
     "jimp": "^1.6.0",
     "liquidjs": "^10.21.1",
     "node-ical": "^0.27.1",

@@ -1,26 +1,16 @@
 ﻿import { redis } from './Redis.js';
 import Parser from 'rss-parser';
+import { google } from 'googleapis';
 import ical from 'node-ical';
 
 export async function syncCalendarData() {
     try {
-        let urlsRaw: any = await redis.get('config:calendar_urls');
-        if (typeof urlsRaw === 'string') {
-            try { urlsRaw = JSON.parse(urlsRaw); } catch(e) { urlsRaw = [urlsRaw]; }
-        }
-        let urls = urlsRaw || [];
-        if (!Array.isArray(urls)) urls = [urls];
-        if (urls.length === 0) {
-            console.log("No calendar URLs found. Skipping.");
-            return;
-        }
-
         const today = new Date();
         const offset = today.getTimezoneOffset() * 60000;
         const localToday = new Date(today.getTime() - offset);
         localToday.setUTCHours(0, 0, 0, 0);
 
-        const days = [];
+        const days: { date: string, dayName: string, tasks: any[] }[] = [];
         const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
 
         for (let i = 0; i < 8; i++) {
@@ -31,11 +21,11 @@ export async function syncCalendarData() {
             days.push({ date: dateStr, dayName: name, tasks: [] });
         }
 
-                const rangeStart = new Date();
+        const rangeStart = new Date();
         rangeStart.setHours(0, 0, 0, 0);
         const rangeEnd = new Date(rangeStart.getTime() + 8 * 24 * 60 * 60 * 1000);
 
-        // 1. Injetar tarefas do Todoist que tem data (due date)
+        // 1. Todoist tasks
         try {
             const rawTd = await redis.get('data:todoist_agenda_raw');
             if (rawTd) {
@@ -49,36 +39,81 @@ export async function syncCalendarData() {
             }
         } catch(e) { console.error("Failed to parse todoist agenda raw", e); }
 
-        // 2. Buscar Google Calendars
-        for (const url of urls) {
-            try {
-                const events = await ical.async.fromURL(url);
-                for (let k in events) {
-                    if (!events.hasOwnProperty(k)) continue;
-                    const ev = events[k] as any;
-                    if (ev.type !== 'VEVENT') continue;
+        // 2. Fetch via Google Calendar OAuth OR Fallback to iCal URLs
+        const googleTokensRaw = await redis.get('config:google_tokens');
+        if (googleTokensRaw) {
+            console.log("Using Google OAuth to fetch Calendar events...");
+            const tokens = typeof googleTokensRaw === 'string' ? JSON.parse(googleTokensRaw) : googleTokensRaw;
+            const oauth2Client = new google.auth.OAuth2(
+                process.env.GOOGLE_CLIENT_ID,
+                process.env.GOOGLE_CLIENT_SECRET
+            );
+            oauth2Client.setCredentials(tokens);
+            const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+            
+            // By default, fetches primary. If they want other calendars, we can loop over them later.
+            const res = await calendar.events.list({
+                calendarId: 'primary',
+                timeMin: rangeStart.toISOString(),
+                timeMax: rangeEnd.toISOString(),
+                singleEvents: true,
+                orderBy: 'startTime',
+            });
+            
+            const events = res.data.items || [];
+            events.forEach(ev => {
+                if (!ev.start) return;
+                const dateRaw = ev.start.dateTime || ev.start.date;
+                if (!dateRaw) return;
+                
+                const localDate = new Date(new Date(dateRaw).getTime() - offset);
+                const dueStr = localDate.toISOString().split('T')[0];
+                const dayMatch = days.find(d => d.date === dueStr);
+                if (dayMatch) {
+                    dayMatch.tasks.push({ content: ev.summary || 'Evento' });
+                }
+            });
 
-                    const addEvent = (date: Date) => {
-                        const localDate = new Date(date.getTime() - offset);
-                        const dueStr = localDate.toISOString().split('T')[0];
-                        const dayMatch = days.find(d => d.date === dueStr);
-                        if (dayMatch) {
-                            dayMatch.tasks.push({ content: ev.summary || 'Evento' });
-                        }
-                    };
+        } else {
+            // Fallback to iCal logic
+            let urlsRaw: any = await redis.get('config:calendar_urls');
+            if (typeof urlsRaw === 'string') {
+                try { urlsRaw = JSON.parse(urlsRaw); } catch(e) { urlsRaw = [urlsRaw]; }
+            }
+            let urls = urlsRaw || [];
+            if (!Array.isArray(urls)) urls = [urls];
 
-                    if (ev.rrule) {
-                        const dates = ev.rrule.between(rangeStart, rangeEnd);
-                        dates.forEach(d => addEvent(d));
-                    } else {
-                        const start = new Date(ev.start);
-                        if (start >= rangeStart && start <= rangeEnd) {
-                            addEvent(start);
+            for (const url of urls) {
+                if (!url) continue;
+                try {
+                    const events = await ical.async.fromURL(url);
+                    for (let k in events) {
+                        if (!events.hasOwnProperty(k)) continue;
+                        const ev = events[k] as any;
+                        if (ev.type !== 'VEVENT') continue;
+
+                        const addEvent = (date: Date) => {
+                            const localDate = new Date(date.getTime() - offset);
+                            const dueStr = localDate.toISOString().split('T')[0];
+                            const dayMatch = days.find(d => d.date === dueStr);
+                            if (dayMatch) {
+                                dayMatch.tasks.push({ content: ev.summary || 'Evento' });
+                            }
+                        };
+
+                        if (ev.rrule) {
+                            const dates = ev.rrule.between(rangeStart, rangeEnd);
+                            dates.forEach(d => addEvent(d));
+                        } else {
+                            const start = new Date(ev.start);
+                            if (start >= rangeStart && start <= rangeEnd) {
+                                addEvent(start);
+                            }
                         }
                     }
+                } catch (err) {
+                    console.error("Failed to fetch calendar URL", url, err);
                 }
-            } catch (err) {
-                console.error("Failed to fetch calendar URL", url, err);
             }
         }
 
@@ -249,6 +284,7 @@ export function startBackgroundSync() {
     checkAndSync();
     setInterval(checkAndSync, 60 * 1000);
 }
+
 
 
 

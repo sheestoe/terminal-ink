@@ -1,4 +1,4 @@
-import {TemplateDataType} from "Data/PrepareData.js";
+﻿import {TemplateDataType} from "Data/PrepareData.js";
 import {PNGto1BIT} from "./PNGto1BIT.js";
 import {TEMPLATE_FOLDER} from "Config.js";
 import {renderToImage} from "./RenderHTML.js";
@@ -34,6 +34,11 @@ export async function buildScreen() {
         const data = cachedNews || [];
         html = await buildLiquid('News', { news: data } as any);
     }
+    else if (currentPlugin === 'todoist') {
+        const cachedTodoist = await redis.get('data:todoist');
+        const data = cachedTodoist || [];
+        html = await buildLiquid('Todoist', { projects: data } as any);
+    }
     else if (currentPlugin === 'image') {
         // For image override
         const imageUrl = await redis.get('config:override_image_url');
@@ -55,5 +60,6 @@ export async function getScreenHash() {
 export async function checkImageUrl(url: string): Promise<boolean> {
     return true; // Skipping for brevity
 }
+
 
 

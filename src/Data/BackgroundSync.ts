@@ -45,6 +45,53 @@ export async function syncNewsData() {
     }
 }
 
+export async function syncTodoistData() {
+    try {
+        const token = process.env.TODOIST_TOKEN;
+        if (!token) {
+            console.error("No TODOIST_TOKEN set");
+            return;
+        }
+
+        const headers = { 'Authorization': 'Bearer ' + token };
+        const [tasksRes, projectsRes] = await Promise.all([
+            fetch('https://api.todoist.com/api/v1/tasks', { headers }),
+            fetch('https://api.todoist.com/api/v1/projects', { headers })
+        ]);
+
+        if (!tasksRes.ok || !projectsRes.ok) {
+            console.error("Todoist fetch failed");
+            return;
+        }
+
+        const tasksData = await tasksRes.json();
+        const projectsData = await projectsRes.json();
+        
+        const tasks = tasksData.results || [];
+        const projects = projectsData.results || [];
+
+        const projectMap = new Map();
+        projects.forEach(p => {
+            projectMap.set(p.id, { name: p.name, tasks: [] });
+        });
+
+        tasks.forEach(t => {
+            if (projectMap.has(t.project_id)) {
+                projectMap.get(t.project_id).tasks.push({
+                    content: t.content,
+                    due: t.due ? t.due.date : null
+                });
+            }
+        });
+
+        const grouped = Array.from(projectMap.values()).filter(p => p.tasks.length > 0);
+        await redis.set('data:todoist', JSON.stringify(grouped));
+        console.log("Todoist synced to Redis");
+    } catch (e) {
+        console.error("Todoist sync failed", e);
+    }
+}
+
 export async function ensureDefaultConfig() {
     const refresh = await redis.get('config:refresh_rate');
     if (!refresh) {
@@ -53,7 +100,7 @@ export async function ensureDefaultConfig() {
 
     const rotation = await redis.lrange('config:rotation', 0, -1);
     if (!rotation || rotation.length === 0) {
-        await redis.rpush('config:rotation', 'weather', 'news');
+        await redis.rpush('config:rotation', 'weather', 'news', 'todoist');
     }
 }
 
@@ -62,7 +109,11 @@ export function startBackgroundSync() {
     ensureDefaultConfig();
     syncWeatherData();
     syncNewsData();
+    syncTodoistData();
 
     setInterval(syncWeatherData, 2 * 60 * 60 * 1000);
     setInterval(syncNewsData, 2 * 60 * 60 * 1000);
+    setInterval(syncTodoistData, 15 * 60 * 1000);
 }
+
+

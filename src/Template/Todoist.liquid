@@ -1,0 +1,43 @@
+﻿<head>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<div style="background-color: white; width: 800px; height: 480px; padding: 20px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
+  
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 20px;">
+    <div style="font-size: 36px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+      <i class="ph ph-check-square-offset" style="margin-right: 10px;"></i>TAREFAS
+    </div>
+    <div style="font-size: 20px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
+      Todoist
+    </div>
+  </div>
+
+  <!-- Columns (Projects) -->
+  <div style="display: flex; gap: 20px; flex: 1; align-items: stretch;">
+    
+    {% for project in projects limit: 3 %}
+    <div style="flex: 1; display: flex; flex-direction: column; background-color: #f8f8f8; border: 4px solid black; border-radius: 20px; padding: 15px; box-shadow: 6px 6px 0px black;">
+      
+      <!-- Project Title -->
+      <div style="font-size: 20px; font-weight: 900; text-transform: uppercase; border-bottom: 3px solid black; padding-bottom: 10px; margin-bottom: 15px; text-align: center;">
+        {{ project.name }}
+      </div>
+
+      <!-- Task Items -->
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        {% for item in project.tasks limit: 5 %}
+        <div style="display: flex; gap: 10px; align-items: flex-start; background: white; padding: 10px; border: 2px solid black; border-radius: 10px;">
+          <div style="font-size: 20px; margin-top: 2px;"><i class="ph ph-circle"></i></div>
+          <div style="font-size: 18px; font-weight: 700; line-height: 1.2;">
+            {{ item.content }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      
+    </div>
+    {% endfor %}
+
+  </div>
+</div>

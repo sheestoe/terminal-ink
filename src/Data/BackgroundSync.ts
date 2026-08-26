@@ -1,4 +1,4 @@
-﻿import { redis } from './Redis.js';
+import { redis } from './Redis.js';
 import Parser from 'rss-parser';
 import { google } from 'googleapis';
 import ical from 'node-ical';
@@ -45,34 +45,56 @@ export async function syncCalendarData() {
             console.log("Using Google OAuth to fetch Calendar events...");
             const tokens = typeof googleTokensRaw === 'string' ? JSON.parse(googleTokensRaw) : googleTokensRaw;
             const oauth2Client = new google.auth.OAuth2(
-                process.env.GOOGLE_CLIENT_ID,
-                process.env.GOOGLE_CLIENT_SECRET
+                process.env['GOOGLE_CLIENT_ID'],
+                process.env['GOOGLE_CLIENT_SECRET']
             );
             oauth2Client.setCredentials(tokens);
             const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-            
-            // By default, fetches primary. If they want other calendars, we can loop over them later.
-            const res = await calendar.events.list({
-                calendarId: 'primary',
-                timeMin: rangeStart.toISOString(),
-                timeMax: rangeEnd.toISOString(),
-                singleEvents: true,
-                orderBy: 'startTime',
-            });
-            
-            const events = res.data.items || [];
-            events.forEach(ev => {
-                if (!ev.start) return;
-                const dateRaw = ev.start.dateTime || ev.start.date;
-                if (!dateRaw) return;
-                
-                const localDate = new Date(new Date(dateRaw).getTime() - offset);
-                const dueStr = localDate.toISOString().split('T')[0];
-                const dayMatch = days.find(d => d.date === dueStr);
-                if (dayMatch) {
-                    dayMatch.tasks.push({ content: ev.summary || 'Evento' });
+
+            // Fetch ALL subscribed calendars
+            const calListRes = await calendar.calendarList.list({ minAccessRole: 'reader' });
+            const allCals = calListRes.data.items || [];
+            console.log("Found calendars:", allCals.map(c => c.summary).join(', '));
+
+            // Check if user has a filter list in Redis
+            let calFilterRaw: any = await redis.get('config:calendar_ids');
+            let calFilter: string[] = [];
+            if (calFilterRaw) {
+                calFilter = typeof calFilterRaw === 'string' ? JSON.parse(calFilterRaw) : calFilterRaw;
+            }
+
+            const calsToFetch = calFilter.length > 0
+                ? allCals.filter(c => calFilter.includes(c.id || '') || calFilter.includes(c.summary || ''))
+                : allCals;
+
+            for (const cal of calsToFetch) {
+                if (!cal.id) continue;
+                try {
+                    const res = await calendar.events.list({
+                        calendarId: cal.id,
+                        timeMin: rangeStart.toISOString(),
+                        timeMax: rangeEnd.toISOString(),
+                        singleEvents: true,
+                        orderBy: 'startTime',
+                    });
+
+                    const events = res.data.items || [];
+                    events.forEach(ev => {
+                        if (!ev.start) return;
+                        const dateRaw = ev.start.dateTime || ev.start.date;
+                        if (!dateRaw) return;
+
+                        const localDate = new Date(new Date(dateRaw).getTime() - offset);
+                        const dueStr = localDate.toISOString().split('T')[0];
+                        const dayMatch = days.find(d => d.date === dueStr);
+                        if (dayMatch) {
+                            dayMatch.tasks.push({ content: ev.summary || 'Evento' });
+                        }
+                    });
+                } catch (calErr) {
+                    console.error("Failed to fetch calendar:", cal.summary, calErr);
                 }
-            });
+            }
 
         } else {
             // Fallback to iCal logic

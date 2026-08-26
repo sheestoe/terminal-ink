@@ -178,7 +178,7 @@ export async function checkAndSync() {
         const todoistExpire = await redis.get('expire:todoist');
         if (!todoistExpire || now > parseInt(todoistExpire as string)) {
             await syncTodoistData();
-            await redis.set('expire:todoist', (now + 15 * 60 * 1000).toString());
+            await redis.set('expire:todoist', (now + 2 * 60 * 60 * 1000).toString());
         }
 
     } catch (e) {
@@ -194,6 +194,7 @@ export function startBackgroundSync() {
     checkAndSync();
     setInterval(checkAndSync, 60 * 1000);
 }
+
 
 
 

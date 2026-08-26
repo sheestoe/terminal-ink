@@ -26,7 +26,7 @@ export async function buildScreen() {
     if (currentPlugin === 'weather') {
         const cachedWeather = await redis.get('data:weather');
         const data = cachedWeather || {};
-        html = await buildLiquid('HaikuWeather', { data } as any);
+        html = await buildLiquid('Weather', { data } as any);
     } 
     else if (currentPlugin === 'news') {
         // We will build AllTheNews liquid template next, for now just a raw dump or a simple template
@@ -55,3 +55,5 @@ export async function getScreenHash() {
 export async function checkImageUrl(url: string): Promise<boolean> {
     return true; // Skipping for brevity
 }
+
+

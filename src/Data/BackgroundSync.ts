@@ -4,7 +4,7 @@ import Parser from 'rss-parser';
 export async function syncWeatherData() {
     try {
         // Marília, SP coordinates
-        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=-22.2208&longitude=-49.9472&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=celsius");
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=-22.2208&longitude=-49.9472&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo");
         const data = await res.json();
         await redis.set('data:weather', JSON.stringify(data));
         console.log("Weather synced to Redis");
@@ -52,3 +52,4 @@ export function startBackgroundSync() {
     setInterval(syncWeatherData, 2 * 60 * 60 * 1000);
     setInterval(syncNewsData, 2 * 60 * 60 * 1000);
 }
+

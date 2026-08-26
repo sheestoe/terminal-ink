@@ -1,0 +1,55 @@
+﻿<head>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<div style="background-color: white; width: 800px; height: 480px; padding: 15px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
+  
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid black; padding-bottom: 5px; margin-bottom: 10px;">
+    <div style="font-size: 30px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+      <i class="ph ph-calendar-check" style="margin-right: 10px;"></i>PROGRAMAÇÃO DA SEMANA
+    </div>
+    <div style="font-size: 18px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
+      Todoist
+    </div>
+  </div>
+
+  <!-- Agenda Planner Grid -->
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; flex: 1;">
+    
+    {% for day in agenda limit: 8 %}
+      <!-- Day Block -->
+      <div style="background: white; border: 3px solid black; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 4px 4px 0px black;">
+        
+        <!-- Day Header -->
+        <div style="background: {% if day.dayName == 'HOJE' %}black{% else %}#ddd{% endif %}; color: {% if day.dayName == 'HOJE' %}white{% else %}black{% endif %}; padding: 5px; text-align: center; border-bottom: 3px solid black;">
+          <div style="font-size: 16px; font-weight: 900; text-transform: uppercase;">{{ day.dayName }}</div>
+          {% assign parts = day.date | split: "-" %}
+          <div style="font-size: 12px; font-weight: bold;">{{ parts[2] }}/{{ parts[1] }}</div>
+        </div>
+        
+        <!-- Day Tasks -->
+        <div style="padding: 5px; flex: 1; display: flex; flex-direction: column; gap: 5px;">
+          {% if day.tasks.size == 0 %}
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; opacity: 0.3;">
+              <i class="ph ph-coffee" style="font-size: 30px;"></i>
+            </div>
+          {% else %}
+            {% assign task_count = day.tasks | size %}
+            {% if task_count > 4 %}
+              {% assign font_size = "11px" %}
+            {% else %}
+              {% assign font_size = "13px" %}
+            {% endif %}
+
+            {% for item in day.tasks limit: 6 %}
+              <div style="font-size: {{ font_size }}; font-weight: 700; line-height: 1.1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; border-left: 3px solid black; padding-left: 5px;">
+                {{ item.content }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+
+  </div>
+</div>

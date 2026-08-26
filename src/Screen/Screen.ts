@@ -46,11 +46,11 @@ export async function buildScreen() {
                 break;
             }
         }
-        else if (currentPlugin === 'todoist_agenda') {
-            const cachedAgenda = await redis.get('data:todoist_agenda');
+        else if (currentPlugin === 'agenda') {
+            const cachedAgenda = await redis.get('data:agenda');
             const data = cachedAgenda || null;
             if (data && data.length > 0) {
-                html = await buildLiquid('TodoistAgenda', { agenda: data } as any);
+                html = await buildLiquid('Agenda', { agenda: data } as any);
                 break;
             }
         }
@@ -83,6 +83,7 @@ export async function getScreenHash() {
 export async function checkImageUrl(url: string): Promise<boolean> {
     return true; // Skipping for brevity
 }
+
 
 
 

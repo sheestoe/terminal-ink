@@ -1,5 +1,79 @@
 ﻿import { redis } from './Redis.js';
 import Parser from 'rss-parser';
+import ical from 'node-ical';
+
+export async function syncCalendarData() {
+    try {
+        let urlsRaw: any = await redis.get('config:calendar_urls');
+        if (typeof urlsRaw === 'string') {
+            try { urlsRaw = JSON.parse(urlsRaw); } catch(e) { urlsRaw = [urlsRaw]; }
+        }
+        let urls = urlsRaw || [];
+        if (!Array.isArray(urls)) urls = [urls];
+        if (urls.length === 0) {
+            console.log("No calendar URLs found. Skipping.");
+            return;
+        }
+
+        const today = new Date();
+        const offset = today.getTimezoneOffset() * 60000;
+        const localToday = new Date(today.getTime() - offset);
+        localToday.setUTCHours(0, 0, 0, 0);
+
+        const days = [];
+        const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
+
+        for (let i = 0; i < 8; i++) {
+            const d = new Date(localToday);
+            d.setUTCDate(d.getUTCDate() + i);
+            const dateStr = d.toISOString().split('T')[0];
+            let name = i === 0 ? 'HOJE' : i === 1 ? 'AMANHÃ' : dayNames[d.getUTCDay()];
+            days.push({ date: dateStr, dayName: name, tasks: [] });
+        }
+
+        const rangeStart = new Date();
+        rangeStart.setHours(0, 0, 0, 0);
+        const rangeEnd = new Date(rangeStart.getTime() + 8 * 24 * 60 * 60 * 1000);
+
+        for (const url of urls) {
+            try {
+                const events = await ical.async.fromURL(url);
+                for (let k in events) {
+                    if (!events.hasOwnProperty(k)) continue;
+                    const ev = events[k] as any;
+                    if (ev.type !== 'VEVENT') continue;
+
+                    const addEvent = (date: Date) => {
+                        const localDate = new Date(date.getTime() - offset);
+                        const dueStr = localDate.toISOString().split('T')[0];
+                        const dayMatch = days.find(d => d.date === dueStr);
+                        if (dayMatch) {
+                            dayMatch.tasks.push({ content: ev.summary || 'Evento' });
+                        }
+                    };
+
+                    if (ev.rrule) {
+                        const dates = ev.rrule.between(rangeStart, rangeEnd);
+                        dates.forEach(d => addEvent(d));
+                    } else {
+                        const start = new Date(ev.start);
+                        if (start >= rangeStart && start <= rangeEnd) {
+                            addEvent(start);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch calendar URL", url, err);
+            }
+        }
+
+        const hasAgendaTasks = days.some(d => d.tasks.length > 0);
+        await redis.set('data:agenda', hasAgendaTasks ? JSON.stringify(days) : '[]');
+        console.log("Calendar synced to Redis");
+    } catch (e) {
+        console.error("Calendar sync failed", e);
+    }
+}
 
 export async function syncWeatherData() {
     try {
@@ -48,10 +122,7 @@ export async function syncNewsData() {
 export async function syncTodoistData() {
     try {
         const token = process.env.TODOIST_TOKEN;
-        if (!token) {
-            console.error("No TODOIST_TOKEN set");
-            return;
-        }
+        if (!token) return;
 
         const headers = { 'Authorization': 'Bearer ' + token };
         const [tasksRes, projectsRes] = await Promise.all([
@@ -59,10 +130,7 @@ export async function syncTodoistData() {
             fetch('https://api.todoist.com/api/v1/projects', { headers })
         ]);
 
-        if (!tasksRes.ok || !projectsRes.ok) {
-            console.error("Todoist fetch failed");
-            return;
-        }
+        if (!tasksRes.ok || !projectsRes.ok) return;
 
         const tasksData = await tasksRes.json();
         const projectsData = await projectsRes.json();
@@ -71,49 +139,11 @@ export async function syncTodoistData() {
         const projects = projectsData.results || projectsData || [];
 
         const projectMap = new Map();
-        projects.forEach(p => {
-            projectMap.set(p.id, { name: p.name, tasks: [] });
-        });
-
-        const today = new Date();
-        const offset = today.getTimezoneOffset() * 60000;
-        const localToday = new Date(today.getTime() - offset);
-        localToday.setUTCHours(0, 0, 0, 0);
-
-        const days = [];
-        const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
-
-        for (let i = 0; i < 8; i++) {
-            const d = new Date(localToday);
-            d.setUTCDate(d.getUTCDate() + i);
-            const dateStr = d.toISOString().split('T')[0];
-            
-            let name = '';
-            if (i === 0) name = 'HOJE';
-            else if (i === 1) name = 'AMANHÃ';
-            else name = dayNames[d.getUTCDay()];
-
-            days.push({ date: dateStr, dayName: name, tasks: [] });
-        }
+        projects.forEach(p => projectMap.set(p.id, { name: p.name, tasks: [] }));
 
         tasks.forEach(t => {
-            const projectName = projectMap.has(t.project_id) ? projectMap.get(t.project_id).name : 'Inbox';
-            const taskObj = {
-                content: t.content,
-                due: t.due ? t.due.date : null,
-                project: projectName
-            };
-
             if (projectMap.has(t.project_id)) {
-                projectMap.get(t.project_id).tasks.push(taskObj);
-            }
-
-            if (t.due && t.due.date) {
-                const dueStr = t.due.date.split('T')[0];
-                const dayMatch = days.find(d => d.date === dueStr);
-                if (dayMatch) {
-                    dayMatch.tasks.push(taskObj);
-                }
+                projectMap.get(t.project_id).tasks.push({ content: t.content });
             }
         });
 
@@ -130,11 +160,7 @@ export async function syncTodoistData() {
             grouped = grouped.slice(0, 3);
         }
 
-        const hasAgendaTasks = days.some(d => d.tasks.length > 0);
-
         await redis.set('data:todoist', JSON.stringify(grouped));
-        await redis.set('data:todoist_agenda', hasAgendaTasks ? JSON.stringify(days) : '[]');
-        console.log("Todoist synced to Redis");
     } catch (e) {
         console.error("Todoist sync failed", e);
     }
@@ -181,6 +207,12 @@ export async function checkAndSync() {
             await redis.set('expire:todoist', (now + 2 * 60 * 60 * 1000).toString());
         }
 
+            // 4. CALENDAR (Expires every 2 hours, or if forced)
+        const calExpire = await redis.get('expire:calendar');
+        if (!calExpire || now > parseInt(calExpire as string)) {
+            await syncCalendarData();
+            await redis.set('expire:calendar', (now + 2 * 60 * 60 * 1000).toString());
+        }
     } catch (e) {
         console.error("Error in checkAndSync:", e);
     }
@@ -194,6 +226,10 @@ export function startBackgroundSync() {
     checkAndSync();
     setInterval(checkAndSync, 60 * 1000);
 }
+
+
+
+
 
 
 

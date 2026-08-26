@@ -47,7 +47,6 @@ app.get(ROUTE_PLUGIN_REDIRECT, async (req: Request, res: Response) => {
         refresh_rate: Number(refresh_rate),
     });
 });
-});
 
 app.get(ROUTE_IMAGE, async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) {
@@ -79,5 +78,6 @@ if (!IS_TEST_ENV) {
         }
     })
 }
+
 
 

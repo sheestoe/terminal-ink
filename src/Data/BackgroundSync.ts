@@ -83,7 +83,7 @@ export async function syncTodoistData() {
         const days = [];
         const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
 
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 8; i++) {
             const d = new Date(localToday);
             d.setUTCDate(d.getUTCDate() + i);
             const dateStr = d.toISOString().split('T')[0];
@@ -163,6 +163,7 @@ export function startBackgroundSync() {
     setInterval(syncNewsData, 2 * 60 * 60 * 1000);
     setInterval(syncTodoistData, 15 * 60 * 1000);
 }
+
 
 
 

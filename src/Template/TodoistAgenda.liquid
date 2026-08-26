@@ -9,14 +9,14 @@
       <i class="ph ph-calendar-check" style="margin-right: 10px;"></i>PROGRAMAÇÃO DA SEMANA
     </div>
     <div style="font-size: 18px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
-      Google / Todoist
+      Todoist
     </div>
   </div>
 
   <!-- Agenda Planner Grid -->
   <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; flex: 1;">
     
-    {% for day in agenda %}
+    {% for day in agenda limit: 8 %}
       <!-- Day Block -->
       <div style="background: white; border: 3px solid black; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 4px 4px 0px black;">
         
@@ -50,12 +50,6 @@
         </div>
       </div>
     {% endfor %}
-
-    <!-- 8th Block (Fill Empty Grid space) -->
-    <div style="background: #f8f8f8; border: 3px dashed #ccc; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5;">
-      <i class="ph ph-calendar-plus" style="font-size: 40px; margin-bottom: 5px;"></i>
-      <div style="font-size: 14px; font-weight: bold; text-align: center;">Futuro</div>
-    </div>
 
   </div>
 </div>

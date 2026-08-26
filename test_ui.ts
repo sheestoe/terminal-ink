@@ -18,14 +18,16 @@ await syncCalendarData();
     fs.writeFileSync('todoist.html', html1, 'utf8');
     console.log('✅ todoist.html gerado!');
 
-    const cachedAgenda = await redis.get('data:todoist_agenda');
+    const cachedAgenda = await redis.get('data:agenda');
     const html2 = await buildLiquid('Agenda', { agenda: cachedAgenda } as any);
-    fs.writeFileSync('todoist_agenda.html', html2, 'utf8');
-    console.log('✅ todoist_agenda.html gerado!');
+    fs.writeFileSync('agenda.html', html2, 'utf8');
+    console.log('✅ agenda.html gerado!');
     
     process.exit(0);
 }
 generate();
+
+
 
 
 

@@ -75,7 +75,26 @@ export async function syncTodoistData() {
             projectMap.set(p.id, { name: p.name, tasks: [] });
         });
 
-        const agendaTasks = [];
+        const today = new Date();
+        const offset = today.getTimezoneOffset() * 60000;
+        const localToday = new Date(today.getTime() - offset);
+        localToday.setUTCHours(0, 0, 0, 0);
+
+        const days = [];
+        const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(localToday);
+            d.setUTCDate(d.getUTCDate() + i);
+            const dateStr = d.toISOString().split('T')[0];
+            
+            let name = '';
+            if (i === 0) name = 'HOJE';
+            else if (i === 1) name = 'AMANHÃ';
+            else name = dayNames[d.getUTCDay()];
+
+            days.push({ date: dateStr, dayName: name, tasks: [] });
+        }
 
         tasks.forEach(t => {
             const projectName = projectMap.has(t.project_id) ? projectMap.get(t.project_id).name : 'Inbox';
@@ -89,32 +108,32 @@ export async function syncTodoistData() {
                 projectMap.get(t.project_id).tasks.push(taskObj);
             }
 
-            if (t.due) {
-                agendaTasks.push(taskObj);
+            if (t.due && t.due.date) {
+                const dueStr = t.due.date.split('T')[0];
+                const dayMatch = days.find(d => d.date === dueStr);
+                if (dayMatch) {
+                    dayMatch.tasks.push(taskObj);
+                }
             }
         });
 
-        agendaTasks.sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime());
-
         let grouped = Array.from(projectMap.values()).filter(p => p.tasks.length > 0);
         
-                // Load target projects from Redis
         let targetProjects: any = await redis.get('config:todoist_projects');
         if (typeof targetProjects === 'string') {
             try { targetProjects = JSON.parse(targetProjects); } catch (e) { targetProjects = []; }
         }
 
         if (targetProjects && targetProjects.length > 0) {
-            // Filter and sort based on target array
-            grouped = targetProjects.map(name => grouped.find(p => p.name.toLowerCase() === name.toLowerCase()))
-                                    .filter(Boolean);
+            grouped = targetProjects.map(name => grouped.find(p => p.name.toLowerCase() === name.toLowerCase())).filter(Boolean);
         } else {
-            // If no config, take first 3 that have tasks
             grouped = grouped.slice(0, 3);
         }
 
+        const hasAgendaTasks = days.some(d => d.tasks.length > 0);
+
         await redis.set('data:todoist', JSON.stringify(grouped));
-        await redis.set('data:todoist_agenda', JSON.stringify(agendaTasks));
+        await redis.set('data:todoist_agenda', hasAgendaTasks ? JSON.stringify(days) : '[]');
         console.log("Todoist synced to Redis");
     } catch (e) {
         console.error("Todoist sync failed", e);
@@ -144,6 +163,7 @@ export function startBackgroundSync() {
     setInterval(syncNewsData, 2 * 60 * 60 * 1000);
     setInterval(syncTodoistData, 15 * 60 * 1000);
 }
+
 
 
 

@@ -1,50 +1,61 @@
 ﻿<head>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
-<div style="background-color: white; width: 800px; height: 480px; padding: 30px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
+<div style="background-color: white; width: 800px; height: 480px; padding: 15px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
   
   <!-- Header -->
-  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 20px;">
-    <div style="font-size: 36px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
-      <i class="ph ph-calendar-check" style="margin-right: 10px;"></i>AGENDA
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid black; padding-bottom: 5px; margin-bottom: 10px;">
+    <div style="font-size: 30px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+      <i class="ph ph-calendar-check" style="margin-right: 10px;"></i>PROGRAMAÇÃO DA SEMANA
     </div>
-    <div style="font-size: 20px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
+    <div style="font-size: 18px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
       Google / Todoist
     </div>
   </div>
 
-  <!-- Agenda List -->
-  <div style="display: flex; flex-direction: column; gap: 15px; flex: 1;">
+  <!-- Agenda Planner Grid -->
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; flex: 1;">
     
-    {% if agenda.size == 0 %}
-    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5;">
-      <i class="ph ph-calendar-blank" style="font-size: 100px; margin-bottom: 20px;"></i>
-      <div style="font-size: 24px; font-weight: bold;">Nenhum evento futuro agendado.</div>
-    </div>
-    {% else %}
-      {% for item in agenda limit: 6 %}
-      <div style="display: flex; gap: 20px; align-items: center; border-bottom: 2px dashed #ccc; padding-bottom: 10px;">
+    {% for day in agenda %}
+      <!-- Day Block -->
+      <div style="background: white; border: 3px solid black; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 4px 4px 0px black;">
         
-        <!-- Date Block -->
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: black; color: white; border-radius: 15px; width: 100px; height: 80px; flex-shrink: 0;">
-          {% assign date_parts = item.due | split: "-" %}
-          <div style="font-size: 32px; font-weight: 900; line-height: 1;">{{ date_parts[2] | truncate: 2, "" }}</div>
-          <div style="font-size: 18px; font-weight: bold; text-transform: uppercase;">Mês {{ date_parts[1] }}</div>
+        <!-- Day Header -->
+        <div style="background: {% if day.dayName == 'HOJE' %}black{% else %}#ddd{% endif %}; color: {% if day.dayName == 'HOJE' %}white{% else %}black{% endif %}; padding: 5px; text-align: center; border-bottom: 3px solid black;">
+          <div style="font-size: 16px; font-weight: 900; text-transform: uppercase;">{{ day.dayName }}</div>
+          {% assign parts = day.date | split: "-" %}
+          <div style="font-size: 12px; font-weight: bold;">{{ parts[2] }}/{{ parts[1] }}</div>
         </div>
+        
+        <!-- Day Tasks -->
+        <div style="padding: 5px; flex: 1; display: flex; flex-direction: column; gap: 5px;">
+          {% if day.tasks.size == 0 %}
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; opacity: 0.3;">
+              <i class="ph ph-coffee" style="font-size: 30px;"></i>
+            </div>
+          {% else %}
+            {% assign task_count = day.tasks | size %}
+            {% if task_count > 4 %}
+              {% assign font_size = "11px" %}
+            {% else %}
+              {% assign font_size = "13px" %}
+            {% endif %}
 
-        <!-- Task Info -->
-        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-          <div style="font-size: 28px; font-weight: 800; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-            {{ item.content }}
-          </div>
-          <div style="font-size: 18px; font-weight: 600; color: #555; margin-top: 5px; display: flex; align-items: center; gap: 5px;">
-            <i class="ph-fill ph-folder"></i> {{ item.project }}
-          </div>
+            {% for item in day.tasks limit: 6 %}
+              <div style="font-size: {{ font_size }}; font-weight: 700; line-height: 1.1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; border-left: 3px solid black; padding-left: 5px;">
+                {{ item.content }}
+              </div>
+            {% endfor %}
+          {% endif %}
         </div>
-
       </div>
-      {% endfor %}
-    {% endif %}
+    {% endfor %}
+
+    <!-- 8th Block (Fill Empty Grid space) -->
+    <div style="background: #f8f8f8; border: 3px dashed #ccc; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5;">
+      <i class="ph ph-calendar-plus" style="font-size: 40px; margin-bottom: 5px;"></i>
+      <div style="font-size: 14px; font-weight: bold; text-align: center;">Futuro</div>
+    </div>
 
   </div>
 </div>

@@ -12,9 +12,14 @@ async function generate() {
     await syncTodoistData(); 
 
     const cachedTodoist = await redis.get('data:todoist');
-    const html = await buildLiquid('Todoist', { projects: cachedTodoist } as any);
-    fs.writeFileSync('todoist.html', html, 'utf8');
+    const html1 = await buildLiquid('Todoist', { projects: cachedTodoist } as any);
+    fs.writeFileSync('todoist.html', html1, 'utf8');
     console.log('✅ todoist.html gerado!');
+
+    const cachedAgenda = await redis.get('data:todoist_agenda');
+    const html2 = await buildLiquid('TodoistAgenda', { agenda: cachedAgenda } as any);
+    fs.writeFileSync('todoist_agenda.html', html2, 'utf8');
+    console.log('✅ todoist_agenda.html gerado!');
     
     process.exit(0);
 }

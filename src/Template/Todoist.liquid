@@ -4,7 +4,7 @@
 <div style="background-color: white; width: 800px; height: 480px; padding: 20px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
   
   <!-- Header -->
-  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 15px;">
     <div style="font-size: 36px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
       <i class="ph ph-check-square-offset" style="margin-right: 10px;"></i>TAREFAS
     </div>
@@ -17,19 +17,30 @@
   <div style="display: flex; gap: 20px; flex: 1; align-items: stretch;">
     
     {% for project in projects limit: 3 %}
-    <div style="flex: 1; display: flex; flex-direction: column; background-color: #f8f8f8; border: 4px solid black; border-radius: 20px; padding: 15px; box-shadow: 6px 6px 0px black;">
+    <div style="flex: 1; display: flex; flex-direction: column; background-color: #f8f8f8; border: 4px solid black; border-radius: 20px; padding: 10px; box-shadow: 6px 6px 0px black;">
       
       <!-- Project Title -->
-      <div style="font-size: 20px; font-weight: 900; text-transform: uppercase; border-bottom: 3px solid black; padding-bottom: 10px; margin-bottom: 15px; text-align: center;">
+      <div style="font-size: 20px; font-weight: 900; text-transform: uppercase; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 10px; text-align: center;">
         {{ project.name }}
       </div>
 
       <!-- Task Items -->
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        {% for item in project.tasks limit: 5 %}
-        <div style="display: flex; gap: 10px; align-items: flex-start; background: white; padding: 10px; border: 2px solid black; border-radius: 10px;">
-          <div style="font-size: 20px; margin-top: 2px;"><i class="ph ph-circle"></i></div>
-          <div style="font-size: 18px; font-weight: 700; line-height: 1.2;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        {% assign task_count = project.tasks | size %}
+        {% if task_count > 6 %}
+          {% assign font_size = "14px" %}
+          {% assign icon_size = "16px" %}
+          {% assign pad = "6px" %}
+        {% else %}
+          {% assign font_size = "17px" %}
+          {% assign icon_size = "18px" %}
+          {% assign pad = "8px" %}
+        {% endif %}
+
+        {% for item in project.tasks limit: 8 %}
+        <div style="display: flex; gap: 8px; align-items: flex-start; background: white; padding: {{ pad }}; border: 2px solid black; border-radius: 10px;">
+          <div style="font-size: {{ icon_size }}; margin-top: 2px;"><i class="ph ph-circle"></i></div>
+          <div style="font-size: {{ font_size }}; font-weight: 700; line-height: 1.1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
             {{ item.content }}
           </div>
         </div>

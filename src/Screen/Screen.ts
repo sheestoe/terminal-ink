@@ -39,6 +39,11 @@ export async function buildScreen() {
         const data = cachedTodoist || [];
         html = await buildLiquid('Todoist', { projects: data } as any);
     }
+    else if (currentPlugin === 'todoist_agenda') {
+        const cachedAgenda = await redis.get('data:todoist_agenda');
+        const data = cachedAgenda || [];
+        html = await buildLiquid('TodoistAgenda', { agenda: data } as any);
+    }
     else if (currentPlugin === 'image') {
         // For image override
         const imageUrl = await redis.get('config:override_image_url');
@@ -60,6 +65,7 @@ export async function getScreenHash() {
 export async function checkImageUrl(url: string): Promise<boolean> {
     return true; // Skipping for brevity
 }
+
 
 
 

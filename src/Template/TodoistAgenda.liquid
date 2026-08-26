@@ -1,0 +1,50 @@
+﻿<head>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<div style="background-color: white; width: 800px; height: 480px; padding: 30px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
+  
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 20px;">
+    <div style="font-size: 36px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+      <i class="ph ph-calendar-check" style="margin-right: 10px;"></i>AGENDA
+    </div>
+    <div style="font-size: 20px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
+      Google / Todoist
+    </div>
+  </div>
+
+  <!-- Agenda List -->
+  <div style="display: flex; flex-direction: column; gap: 15px; flex: 1;">
+    
+    {% if agenda.size == 0 %}
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5;">
+      <i class="ph ph-calendar-blank" style="font-size: 100px; margin-bottom: 20px;"></i>
+      <div style="font-size: 24px; font-weight: bold;">Nenhum evento futuro agendado.</div>
+    </div>
+    {% else %}
+      {% for item in agenda limit: 6 %}
+      <div style="display: flex; gap: 20px; align-items: center; border-bottom: 2px dashed #ccc; padding-bottom: 10px;">
+        
+        <!-- Date Block -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: black; color: white; border-radius: 15px; width: 100px; height: 80px; flex-shrink: 0;">
+          {% assign date_parts = item.due | split: "-" %}
+          <div style="font-size: 32px; font-weight: 900; line-height: 1;">{{ date_parts[2] | truncate: 2, "" }}</div>
+          <div style="font-size: 18px; font-weight: bold; text-transform: uppercase;">Mês {{ date_parts[1] }}</div>
+        </div>
+
+        <!-- Task Info -->
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+          <div style="font-size: 28px; font-weight: 800; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+            {{ item.content }}
+          </div>
+          <div style="font-size: 18px; font-weight: 600; color: #555; margin-top: 5px; display: flex; align-items: center; gap: 5px;">
+            <i class="ph-fill ph-folder"></i> {{ item.project }}
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    {% endif %}
+
+  </div>
+</div>

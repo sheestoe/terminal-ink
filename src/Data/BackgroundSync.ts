@@ -67,25 +67,39 @@ export async function syncTodoistData() {
         const tasksData = await tasksRes.json();
         const projectsData = await projectsRes.json();
         
-        const tasks = tasksData.results || [];
-        const projects = projectsData.results || [];
+        const tasks = tasksData.results || tasksData || [];
+        const projects = projectsData.results || projectsData || [];
 
         const projectMap = new Map();
         projects.forEach(p => {
             projectMap.set(p.id, { name: p.name, tasks: [] });
         });
 
+        const agendaTasks = [];
+
         tasks.forEach(t => {
+            const projectName = projectMap.has(t.project_id) ? projectMap.get(t.project_id).name : 'Inbox';
+            const taskObj = {
+                content: t.content,
+                due: t.due ? t.due.date : null,
+                project: projectName
+            };
+
             if (projectMap.has(t.project_id)) {
-                projectMap.get(t.project_id).tasks.push({
-                    content: t.content,
-                    due: t.due ? t.due.date : null
-                });
+                projectMap.get(t.project_id).tasks.push(taskObj);
+            }
+
+            if (t.due) {
+                agendaTasks.push(taskObj);
             }
         });
 
+        // Sort agenda by date
+        agendaTasks.sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime());
+
         const grouped = Array.from(projectMap.values()).filter(p => p.tasks.length > 0);
         await redis.set('data:todoist', JSON.stringify(grouped));
+        await redis.set('data:todoist_agenda', JSON.stringify(agendaTasks));
         console.log("Todoist synced to Redis");
     } catch (e) {
         console.error("Todoist sync failed", e);
@@ -100,7 +114,7 @@ export async function ensureDefaultConfig() {
 
     const rotation = await redis.lrange('config:rotation', 0, -1);
     if (!rotation || rotation.length === 0) {
-        await redis.rpush('config:rotation', 'weather', 'news', 'todoist');
+        await redis.rpush('config:rotation', 'weather', 'news', 'todoist', 'todoist_agenda');
     }
 }
 
@@ -115,5 +129,7 @@ export function startBackgroundSync() {
     setInterval(syncNewsData, 2 * 60 * 60 * 1000);
     setInterval(syncTodoistData, 15 * 60 * 1000);
 }
+
+
 
 

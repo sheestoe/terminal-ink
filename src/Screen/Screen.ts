@@ -23,29 +23,37 @@ export async function buildScreen() {
         if (currentPlugin === 'weather') {
             const data = await redis.get('data:weather');
             if (data && Object.keys(data as object).length > 0) {
-                html = await buildLiquid('Weather', { data } as any);
-                break;
+                try {
+                    html = await buildLiquid('Weather', { data } as any);
+                    break;
+                } catch(e) { console.error('Weather template failed, skipping', e); }
             }
         }
         else if (currentPlugin === 'news') {
             const data = await redis.get('data:news');
             if (data && (data as any[]).length > 0) {
-                html = await buildLiquid('News', { news: data } as any);
-                break;
+                try {
+                    html = await buildLiquid('News', { news: data } as any);
+                    break;
+                } catch(e) { console.error('News template failed, skipping', e); }
             }
         }
         else if (currentPlugin === 'todoist') {
             const data = await redis.get('data:todoist');
             if (data && (data as any[]).length > 0) {
-                html = await buildLiquid('Todoist', { projects: data } as any);
-                break;
+                try {
+                    html = await buildLiquid('Todoist', { projects: data } as any);
+                    break;
+                } catch(e) { console.error('Todoist template failed, skipping', e); }
             }
         }
         else if (currentPlugin === 'agenda') {
             const data = await redis.get('data:agenda');
             if (data && (data as any[]).length > 0) {
-                html = await buildLiquid('Agenda', { agenda: data } as any);
-                break;
+                try {
+                    html = await buildLiquid('Agenda', { agenda: data } as any);
+                    break;
+                } catch(e) { console.error('Agenda template failed, skipping', e); }
             }
         }
         else if (currentPlugin === 'image') {

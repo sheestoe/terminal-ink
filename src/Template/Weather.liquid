@@ -1,71 +1,71 @@
-﻿{% capture weatherIcon %}
-{% case data.current.weather_code %}
-  {% when 0 %}sun
-  {% when 1 or 2 or 3 %}cloud
-  {% when 45 or 48 %}cloud-fog
-  {% when 51 or 53 or 55 or 56 or 57 %}cloud-rain
-  {% when 61 or 63 or 65 or 66 or 67 %}cloud-rain
-  {% when 71 or 73 or 75 or 77 %}cloud-snow
-  {% when 80 or 81 or 82 %}cloud-rain
-  {% when 85 or 86 %}cloud-snow
-  {% when 95 %}cloud-storm
-  {% when 96 or 99 %}cloud-bolt
-  {% else %}cloud
-{% endcase %}
-{% endcapture %}
-
-{% capture weatherDesc %}
-{% case data.current.weather_code %}
-  {% when 0 %}Clear sky
-  {% when 1 %}Mainly clear
-  {% when 2 %}Partly cloudy
-  {% when 3 %}Overcast
-  {% when 45 or 48 %}Foggy
-  {% when 51 or 53 or 55 %}Drizzle
-  {% when 56 or 57 %}Freezing Drizzle
-  {% when 61 or 63 or 65 %}Rain
-  {% when 66 or 67 %}Freezing Rain
-  {% when 71 or 73 or 75 %}Snow fall
-  {% when 77 %}Snow grains
-  {% when 80 or 81 or 82 %}Rain showers
-  {% when 85 or 86 %}Snow showers
-  {% when 95 %}Thunderstorm
-  {% when 96 or 99 %}Thunderstorm with hail
-  {% else %}Unknown
-{% endcase %}
-{% endcapture %}
-
-<div class="layout layout--col" style="background: white; padding: 30px; height: 100vh; font-family: sans-serif; display: flex; flex-direction: column; justify-content: space-between;">
+﻿<div style="background-color: white; width: 800px; height: 480px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
   
-  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-    <div>
-      <h1 style="font-size: 50px; margin: 0; font-weight: bold;">Marília, SP</h1>
-      <p style="font-size: 28px; color: #555; margin: 10px 0;">{{ weatherDesc | strip }}</p>
-    </div>
-    <div style="display: flex; align-items: center;">
-      <h2 style="font-size: 110px; margin: 0;">{{ data.current.temperature_2m | round }}°</h2>
-    </div>
+  <!-- Header -->
+  <div style="padding: 20px 30px; border-bottom: 3px solid black; display: flex; justify-content: space-between; align-items: center;">
+    <div style="font-size: 32px; font-weight: bold; letter-spacing: -1px;">PREVISÃO DO TEMPO</div>
+    <div style="font-size: 24px; font-weight: bold;">Marília, SP</div>
   </div>
 
-  <div style="display: flex; gap: 40px; margin-top: 20px; font-size: 24px;">
-    <div><strong>Min:</strong> {{ data.daily.temperature_2m_min[0] | round }}°</div>
-    <div><strong>Max:</strong> {{ data.daily.temperature_2m_max[0] | round }}°</div>
-    <div><strong>Sensação:</strong> {{ data.current.apparent_temperature | round }}°</div>
-    <div><strong>Umidade:</strong> {{ data.current.relative_humidity_2m }}%</div>
-  </div>
+  <!-- Main Content -->
+  <div style="display: flex; flex: 1;">
+    <!-- Left: Current Weather -->
+    <div style="flex: 1; border-right: 3px solid black; padding: 30px; display: flex; flex-direction: column; justify-content: center;">
+      <div style="font-size: 140px; font-weight: 800; line-height: 1; letter-spacing: -5px;">
+        {{ data.current.temperature_2m | round }}°
+      </div>
+      <div style="font-size: 36px; font-weight: 600; margin-top: 10px; text-transform: uppercase;">
+        {% case data.current.weather_code %}
+          {% when 0 %}Céu Limpo
+          {% when 1 or 2 or 3 %}Nublado
+          {% when 45 or 48 %}Neblina
+          {% when 51 or 53 or 55 or 56 or 57 %}Chuvisco
+          {% when 61 or 63 or 65 or 66 or 67 %}Chuva
+          {% when 71 or 73 or 75 or 77 %}Neve
+          {% when 80 or 81 or 82 %}Pancadas de Chuva
+          {% when 95 or 96 or 99 %}Tempestade
+          {% else %}Indefinido
+        {% endcase %}
+      </div>
+      <div style="margin-top: 30px; font-size: 28px; line-height: 1.5;">
+        <div><strong>Sensação:</strong> {{ data.current.apparent_temperature | round }}°C</div>
+        <div><strong>Umidade:</strong> {{ data.current.relative_humidity_2m }}%</div>
+        <div><strong>Vento:</strong> {{ data.current.wind_speed_10m | round }} km/h</div>
+      </div>
+    </div>
 
-  <div style="border-top: 2px solid #ddd; padding-top: 20px; display: flex; justify-content: space-between;">
-    <div style="text-align: center;">
-      <p style="margin: 0; font-size: 20px; color: #666;">Amanhã</p>
-      <p style="margin: 5px 0; font-size: 26px; font-weight: bold;">{{ data.daily.temperature_2m_max[1] | round }}° / {{ data.daily.temperature_2m_min[1] | round }}°</p>
-    </div>
-    <div style="text-align: center;">
-      <p style="margin: 0; font-size: 20px; color: #666;">Depois</p>
-      <p style="margin: 5px 0; font-size: 26px; font-weight: bold;">{{ data.daily.temperature_2m_max[2] | round }}° / {{ data.daily.temperature_2m_min[2] | round }}°</p>
-    </div>
-    <div style="text-align: center;">
-      <p style="margin: 0; font-size: 20px; color: #666;">Em 3 dias</p>
-      <p style="margin: 5px 0; font-size: 26px; font-weight: bold;">{{ data.daily.temperature_2m_max[3] | round }}° / {{ data.daily.temperature_2m_min[3] | round }}°</p>
+    <!-- Right: Forecast -->
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      
+      <!-- Today -->
+      <div style="flex: 1; border-bottom: 3px solid black; padding: 20px 30px; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 22px; text-transform: uppercase; font-weight: bold; margin-bottom: 10px;">Hoje</div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div style="font-size: 48px; font-weight: 800;">{{ data.daily.temperature_2m_max[0] | round }}°</div>
+          <div style="font-size: 32px; color: #555;">{{ data.daily.temperature_2m_min[0] | round }}°</div>
+        </div>
+        <div style="font-size: 20px; margin-top: 5px;">Chuva: {{ data.daily.precipitation_probability_max[0] }}%</div>
+      </div>
+
+      <!-- Tomorrow -->
+      <div style="flex: 1; border-bottom: 3px solid black; padding: 20px 30px; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 22px; text-transform: uppercase; font-weight: bold; margin-bottom: 10px;">Amanhã</div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div style="font-size: 48px; font-weight: 800;">{{ data.daily.temperature_2m_max[1] | round }}°</div>
+          <div style="font-size: 32px; color: #555;">{{ data.daily.temperature_2m_min[1] | round }}°</div>
+        </div>
+        <div style="font-size: 20px; margin-top: 5px;">Chuva: {{ data.daily.precipitation_probability_max[1] }}%</div>
+      </div>
+
+      <!-- Day after tomorrow -->
+      <div style="flex: 1; padding: 20px 30px; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 22px; text-transform: uppercase; font-weight: bold; margin-bottom: 10px;">Depois de Amanhã</div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div style="font-size: 48px; font-weight: 800;">{{ data.daily.temperature_2m_max[2] | round }}°</div>
+          <div style="font-size: 32px; color: #555;">{{ data.daily.temperature_2m_min[2] | round }}°</div>
+        </div>
+        <div style="font-size: 20px; margin-top: 5px;">Chuva: {{ data.daily.precipitation_probability_max[2] }}%</div>
+      </div>
+
     </div>
   </div>
 </div>

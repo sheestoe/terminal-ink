@@ -57,6 +57,19 @@ app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
     }
 });
 
+// Kindle-compatible display endpoint — matches what TRMNL.sh expects
+app.get('/api/display', async (req: Request, res: Response) => {
+    const refresh_rate = await redis.get('config:refresh_rate') || REFRESH_RATE_SECONDS;
+    const hash = await getScreenHash();
+    const imageUrl = (process.env['PUBLIC_URL_ORIGIN'] || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/image?secret_key=' + SECRET_KEY;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({
+        image_url: imageUrl,
+        filename: 'trmnl-' + hash + '.bmp',
+        refresh_rate: Number(refresh_rate),
+    });
+});
+
 // BYOS after OAuth so /api/auth/* doesn't get swallowed
 if (BYOS_ENABLED) {
     app.use('/api', BYOSRoutes);

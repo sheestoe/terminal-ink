@@ -1,4 +1,4 @@
-﻿<head>
+<head>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <div style="background-color: white; width: 800px; height: 480px; padding: 15px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
@@ -42,8 +42,9 @@
             {% endif %}
 
             {% for item in day.tasks limit: 6 %}
-              <div style="font-size: {{ font_size }}; font-weight: 700; line-height: 1.1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; border-left: 3px solid black; padding-left: 5px;">
-                {{ item.content }}
+              {% assign t = item.time %}
+              <div style="font-size: {{ font_size }}; font-weight: 700; line-height: 1.2; border-left: 3px solid black; padding-left: 5px; margin-bottom: 3px;">
+                {% if t and t != "" %}<span style="font-size: 11px; font-weight: 900; background: black; color: white; border-radius: 4px; padding: 0 3px; margin-right: 3px;">{{ t }}</span>{% endif %}{{ item.content }}
               </div>
             {% endfor %}
           {% endif %}

@@ -1,4 +1,4 @@
-import { redis } from './Redis.js';
+﻿import { redis } from './Redis.js';
 import Parser from 'rss-parser';
 import { google } from 'googleapis';
 import ical from 'node-ical';
@@ -11,13 +11,13 @@ export async function syncCalendarData() {
         localToday.setUTCHours(0, 0, 0, 0);
 
         const days: { date: string, dayName: string, tasks: any[] }[] = [];
-        const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
+        const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÃ‡A', 'QUARTA', 'QUINTA', 'SEXTA', 'SÃBADO'];
 
         for (let i = 0; i < 8; i++) {
             const d = new Date(localToday);
             d.setUTCDate(d.getUTCDate() + i);
             const dateStr = d.toISOString().split('T')[0];
-            let name = i === 0 ? 'HOJE' : i === 1 ? 'AMANHÃ' : dayNames[d.getUTCDay()];
+            let name = i === 0 ? 'HOJE' : i === 1 ? 'AMANHÃƒ' : dayNames[d.getUTCDay()];
             days.push({ date: dateStr, dayName: name, tasks: [] });
         }
 
@@ -33,7 +33,7 @@ export async function syncCalendarData() {
                 tdTasks.forEach((t: any) => {
                     const dayMatch = days.find(d => d.date === t.due);
                     if (dayMatch) {
-                        dayMatch.tasks.push({ content: t.content });
+                        dayMatch.tasks.push({ content: t.content, time: '' });
                     }
                 });
             }
@@ -84,11 +84,20 @@ export async function syncCalendarData() {
                         const dateRaw = ev.start.dateTime || ev.start.date;
                         if (!dateRaw) return;
 
+                        const isAllDay = !ev.start.dateTime;
                         const localDate = new Date(new Date(dateRaw).getTime() - offset);
                         const dueStr = localDate.toISOString().split('T')[0];
+                        
+                        // Extract HH:MM in local time
+                        let timeStr = '';
+                        if (!isAllDay) {
+                            const eventLocal = new Date(dateRaw);
+                            timeStr = eventLocal.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+                        }
+
                         const dayMatch = days.find(d => d.date === dueStr);
                         if (dayMatch) {
-                            dayMatch.tasks.push({ content: ev.summary || 'Evento' });
+                            dayMatch.tasks.push({ content: ev.summary || 'Evento', time: timeStr });
                         }
                     });
                 } catch (calErr) {
@@ -119,7 +128,7 @@ export async function syncCalendarData() {
                             const dueStr = localDate.toISOString().split('T')[0];
                             const dayMatch = days.find(d => d.date === dueStr);
                             if (dayMatch) {
-                                dayMatch.tasks.push({ content: ev.summary || 'Evento' });
+                                dayMatch.tasks.push({ content: ev.summary || 'Evento', time: '' });
                             }
                         };
 
@@ -306,6 +315,7 @@ export function startBackgroundSync() {
     checkAndSync();
     setInterval(checkAndSync, 60 * 1000);
 }
+
 
 
 

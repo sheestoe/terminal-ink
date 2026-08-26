@@ -31,10 +31,25 @@ export async function syncCalendarData() {
             days.push({ date: dateStr, dayName: name, tasks: [] });
         }
 
-        const rangeStart = new Date();
+                const rangeStart = new Date();
         rangeStart.setHours(0, 0, 0, 0);
         const rangeEnd = new Date(rangeStart.getTime() + 8 * 24 * 60 * 60 * 1000);
 
+        // 1. Injetar tarefas do Todoist que tem data (due date)
+        try {
+            const rawTd = await redis.get('data:todoist_agenda_raw');
+            if (rawTd) {
+                const tdTasks = typeof rawTd === 'string' ? JSON.parse(rawTd) : rawTd;
+                tdTasks.forEach((t: any) => {
+                    const dayMatch = days.find(d => d.date === t.due);
+                    if (dayMatch) {
+                        dayMatch.tasks.push({ content: t.content });
+                    }
+                });
+            }
+        } catch(e) { console.error("Failed to parse todoist agenda raw", e); }
+
+        // 2. Buscar Google Calendars
         for (const url of urls) {
             try {
                 const events = await ical.async.fromURL(url);
@@ -138,14 +153,22 @@ export async function syncTodoistData() {
         const tasks = tasksData.results || tasksData || [];
         const projects = projectsData.results || projectsData || [];
 
-        const projectMap = new Map();
+                const projectMap = new Map();
         projects.forEach(p => projectMap.set(p.id, { name: p.name, tasks: [] }));
 
+        const agendaTasks: any[] = [];
+
         tasks.forEach(t => {
+            const projectName = projectMap.has(t.project_id) ? projectMap.get(t.project_id).name : 'Inbox';
             if (projectMap.has(t.project_id)) {
                 projectMap.get(t.project_id).tasks.push({ content: t.content });
             }
+            if (t.due && t.due.date) {
+                agendaTasks.push({ content: '[TD] ' + t.content, due: t.due.date.split('T')[0] });
+            }
         });
+
+        await redis.set('data:todoist_agenda_raw', JSON.stringify(agendaTasks));
 
         let grouped = Array.from(projectMap.values()).filter(p => p.tasks.length > 0);
         
@@ -226,6 +249,9 @@ export function startBackgroundSync() {
     checkAndSync();
     setInterval(checkAndSync, 60 * 1000);
 }
+
+
+
 
 
 

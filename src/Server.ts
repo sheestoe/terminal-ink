@@ -11,8 +11,11 @@ import {buildScreen, checkImageUrl, getScreenHash} from "Screen/Screen.js";
 import {BYOSRoutes} from "BYOS/BYOSRoutes.js";
 import {ROUTE_IMAGE, ROUTE_PLUGIN_REDIRECT} from "Routes.js";
 import {initPuppeteer} from "./Screen/RenderHTML.js";
+import {startBackgroundSync} from "./Data/BackgroundSync.js";
+import {redis} from "./Data/Redis.js";
 
 export const app = express();
+startBackgroundSync();
 app.use(express.json());
 
 if (BYOS_ENABLED) {
@@ -36,12 +39,14 @@ app.get(ROUTE_PLUGIN_REDIRECT, async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) {
         return;
     }
+    const refresh_rate = await redis.get('config:refresh_rate') || REFRESH_RATE_SECONDS;
     res.setHeader('Content-Type', 'application/json');
     res.json({
-        filename: 'custom-screen-' + await getScreenHash(), // screen wouldn't update if data is not changed
+        filename: 'custom-screen-' + await getScreenHash(),
         url: SCREEN_URL,
-        refresh_rate: REFRESH_RATE_SECONDS,
+        refresh_rate: Number(refresh_rate),
     });
+});
 });
 
 app.get(ROUTE_IMAGE, async (req: Request, res: Response) => {
@@ -74,3 +79,4 @@ if (!IS_TEST_ENV) {
         }
     })
 }
+

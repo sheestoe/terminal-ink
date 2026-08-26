@@ -1,0 +1,12 @@
+<div class="layout layout--col col--start p--20" style="background: white; z-index: 2;">
+  <div class="title_bar mb--10 rounded">
+    <span class="title">Últimas Notícias (G1)</span>
+  </div>
+  <div class="flex flex--col gap--10">
+    {% for item in news %}
+      <div style="font-size: 24px; padding: 10px; border-bottom: 2px solid black;">
+        {{ item.title }}
+      </div>
+    {% endfor %}
+  </div>
+</div>

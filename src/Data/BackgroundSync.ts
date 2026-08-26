@@ -94,10 +94,25 @@ export async function syncTodoistData() {
             }
         });
 
-        // Sort agenda by date
         agendaTasks.sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime());
 
-        const grouped = Array.from(projectMap.values()).filter(p => p.tasks.length > 0);
+        let grouped = Array.from(projectMap.values()).filter(p => p.tasks.length > 0);
+        
+                // Load target projects from Redis
+        let targetProjects: any = await redis.get('config:todoist_projects');
+        if (typeof targetProjects === 'string') {
+            try { targetProjects = JSON.parse(targetProjects); } catch (e) { targetProjects = []; }
+        }
+
+        if (targetProjects && targetProjects.length > 0) {
+            // Filter and sort based on target array
+            grouped = targetProjects.map(name => grouped.find(p => p.name.toLowerCase() === name.toLowerCase()))
+                                    .filter(Boolean);
+        } else {
+            // If no config, take first 3 that have tasks
+            grouped = grouped.slice(0, 3);
+        }
+
         await redis.set('data:todoist', JSON.stringify(grouped));
         await redis.set('data:todoist_agenda', JSON.stringify(agendaTasks));
         console.log("Todoist synced to Redis");
@@ -129,6 +144,8 @@ export function startBackgroundSync() {
     setInterval(syncNewsData, 2 * 60 * 60 * 1000);
     setInterval(syncTodoistData, 15 * 60 * 1000);
 }
+
+
 
 
 

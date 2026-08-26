@@ -1,4 +1,4 @@
-﻿import express, {NextFunction, Request, Response} from "express";
+import express, {NextFunction, Request, Response} from "express";
 import {
     SECRET_KEY,
     SERVER_HOST,
@@ -13,18 +13,11 @@ import {ROUTE_IMAGE, ROUTE_PLUGIN_REDIRECT} from "Routes.js";
 import {initPuppeteer} from "./Screen/RenderHTML.js";
 import {startBackgroundSync} from "./Data/BackgroundSync.js";
 import {redis} from "./Data/Redis.js";
+import { google } from 'googleapis';
 
 export const app = express();
 startBackgroundSync();
 app.use(express.json());
-
-if (BYOS_ENABLED) {
-    app.use('/api', BYOSRoutes);
-}
-
-app.get('/', (_, res: Response) => {
-    res.send();
-})
 
 function isSecretKeyValid(req: Request, res: Response) {
     if (req.query['secret_key'] !== SECRET_KEY) {
@@ -35,12 +28,11 @@ function isSecretKeyValid(req: Request, res: Response) {
     return true;
 }
 
-import { google } from 'googleapis';
-
+// Google OAuth routes — must be registered BEFORE BYOS middleware
 const oauth2Client = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    (process.env.PUBLIC_URL_ORIGIN || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/api/auth/google/callback'
+    process.env['GOOGLE_CLIENT_ID'],
+    process.env['GOOGLE_CLIENT_SECRET'],
+    (process.env['PUBLIC_URL_ORIGIN'] || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/api/auth/google/callback'
 );
 
 app.get('/api/auth/google', (req: Request, res: Response) => {
@@ -54,16 +46,25 @@ app.get('/api/auth/google', (req: Request, res: Response) => {
 });
 
 app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
-    const code = req.query.code as string;
+    const code = req.query['code'] as string;
     try {
         const { tokens } = await oauth2Client.getToken(code);
         await redis.set('config:google_tokens', JSON.stringify(tokens));
-        res.send("<h1>Google Calendar Authenticated!</h1><p>You can close this window. Background sync will use the new tokens.</p>");
+        res.send("<h1>Google Calendar Authenticated!</h1><p>You can close this window.</p>");
     } catch (e) {
         console.error("Auth error", e);
-        res.status(500).send("Auth Failed");
+        res.status(500).send("Auth Failed: " + (e as Error).message);
     }
 });
+
+// BYOS after OAuth so /api/auth/* doesn't get swallowed
+if (BYOS_ENABLED) {
+    app.use('/api', BYOSRoutes);
+}
+
+app.get('/', (_, res: Response) => {
+    res.send();
+})
 
 app.get(ROUTE_PLUGIN_REDIRECT, async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) {
@@ -108,9 +109,3 @@ if (!IS_TEST_ENV) {
         }
     })
 }
-
-
-
-
-
-

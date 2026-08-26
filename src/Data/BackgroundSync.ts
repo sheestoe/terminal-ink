@@ -1,4 +1,4 @@
-﻿import { redis } from './Redis.js';
+import { redis } from './Redis.js';
 import Parser from 'rss-parser';
 import { google } from 'googleapis';
 import ical from 'node-ical';
@@ -158,12 +158,48 @@ export async function syncCalendarData() {
 
 export async function syncWeatherData() {
     try {
+        // Primary: Open-Meteo (free, no key needed)
         const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=-22.2208&longitude=-49.9472&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo");
         const data = await res.json();
+
+        if (data.error || !data.current) {
+            throw new Error(data.reason || 'Open-Meteo error');
+        }
+
         await redis.set('data:weather', JSON.stringify(data));
-        console.log("Weather synced to Redis");
+        console.log("Weather synced to Redis (Open-Meteo)");
     } catch (e) {
-        console.error("Weather sync failed", e);
+        console.error("Open-Meteo failed, trying wttr.in backup:", (e as Error).message);
+        try {
+            // Fallback: wttr.in — no key, very generous limits
+            const res = await fetch("https://wttr.in/Bauru?format=j1");
+            const w = await res.json();
+            const cur = w.current_condition[0];
+            const days = w.weather;
+
+            // Map wttr.in format to Open-Meteo format so the Liquid template works unchanged
+            const mapped = {
+                current: {
+                    temperature_2m: parseFloat(cur.temp_C),
+                    apparent_temperature: parseFloat(cur.FeelsLikeC),
+                    relative_humidity_2m: parseFloat(cur.humidity),
+                    weather_code: parseInt(cur.weatherCode),
+                    wind_speed_10m: parseFloat(cur.windspeedKmph),
+                },
+                daily: {
+                    weather_code:  days.map((d: any) => parseInt(d.hourly[4]?.weatherCode || 0)),
+                    temperature_2m_max: days.map((d: any) => parseFloat(d.maxtempC)),
+                    temperature_2m_min: days.map((d: any) => parseFloat(d.mintempC)),
+                    precipitation_probability_max: days.map((d: any) => parseFloat(d.hourly[4]?.chanceofrain || 0)),
+                    time: days.map((d: any) => d.date),
+                }
+            };
+
+            await redis.set('data:weather', JSON.stringify(mapped));
+            console.log("Weather synced to Redis (wttr.in backup)");
+        } catch (e2) {
+            console.error("Weather sync failed (both sources)", e2);
+        }
     }
 }
 

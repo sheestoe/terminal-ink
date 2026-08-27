@@ -25,7 +25,7 @@ export async function buildScreen(format: 'bmp' | 'png' = 'bmp', rotation: numbe
             const data = await redis.get('data:weather');
             if (data && Object.keys(data as object).length > 0) {
                 try {
-                    html = await buildLiquid('Weather', { data } as any);
+                    html = await buildLiquid('Weather', { data, screen_height: height } as any);
                     break;
                 } catch(e) { console.error('Weather template failed, skipping', e); }
             }
@@ -34,7 +34,7 @@ export async function buildScreen(format: 'bmp' | 'png' = 'bmp', rotation: numbe
             const data = await redis.get('data:news');
             if (data && (data as any[]).length > 0) {
                 try {
-                    html = await buildLiquid('News', { news: data } as any);
+                    html = await buildLiquid('News', { news: data, screen_height: height } as any);
                     break;
                 } catch(e) { console.error('News template failed, skipping', e); }
             }
@@ -43,7 +43,7 @@ export async function buildScreen(format: 'bmp' | 'png' = 'bmp', rotation: numbe
             const data = await redis.get('data:todoist');
             if (data && (data as any[]).length > 0) {
                 try {
-                    html = await buildLiquid('Todoist', { projects: data } as any);
+                    html = await buildLiquid('Todoist', { projects: data, screen_height: height } as any);
                     break;
                 } catch(e) { console.error('Todoist template failed, skipping', e); }
             }
@@ -52,7 +52,7 @@ export async function buildScreen(format: 'bmp' | 'png' = 'bmp', rotation: numbe
             const data = await redis.get('data:agenda');
             if (data && (data as any[]).length > 0) {
                 try {
-                    html = await buildLiquid('Agenda', { agenda: data } as any);
+                    html = await buildLiquid('Agenda', { agenda: data, screen_height: height } as any);
                     break;
                 } catch(e) { console.error('Agenda template failed, skipping', e); }
             }

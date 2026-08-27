@@ -35,13 +35,23 @@
             </div>
           {% else %}
             {% assign task_count = day.tasks | size %}
-            {% if task_count > 4 %}
-              {% assign font_size = "11px" %}
+            {% if screen_height and screen_height > 500 %}
+              {% assign limit_items = 8 %}
+              {% if task_count > 6 %}
+                {% assign font_size = "13px" %}
+              {% else %}
+                {% assign font_size = "15px" %}
+              {% endif %}
             {% else %}
-              {% assign font_size = "13px" %}
+              {% assign limit_items = 6 %}
+              {% if task_count > 4 %}
+                {% assign font_size = "11px" %}
+              {% else %}
+                {% assign font_size = "13px" %}
+              {% endif %}
             {% endif %}
 
-            {% for item in day.tasks limit: 6 %}
+            {% for item in day.tasks limit: limit_items %}
               {% assign t = item.time %}
               <div style="font-size: {{ font_size }}; font-weight: 700; line-height: 1.2; border-left: 3px solid black; padding-left: 5px; margin-bottom: 3px;">
                 {% if t and t != "" %}<span style="font-size: 11px; font-weight: 900; background: black; color: white; border-radius: 4px; padding: 0 3px; margin-right: 3px;">{{ t }}</span>{% endif %}{{ item.content }}

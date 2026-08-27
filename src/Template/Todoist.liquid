@@ -19,20 +19,38 @@
     {% for project in projects limit: 3 %}
       {% assign task_count = project.tasks | size %}
       
-      {% if task_count > 5 %}
-        {% assign box_flex = 2 %}
-        {% assign inner_cols = 2 %}
-        {% assign font_size = "15px" %}
-        {% assign icon_size = "16px" %}
-        {% assign pad = "6px" %}
-        {% assign limit_tasks = 12 %}
+      {% if screen_height and screen_height > 500 %}
+        {% if task_count > 7 %}
+          {% assign box_flex = 2 %}
+          {% assign inner_cols = 2 %}
+          {% assign font_size = "15px" %}
+          {% assign icon_size = "16px" %}
+          {% assign pad = "6px" %}
+          {% assign limit_tasks = 16 %}
+        {% else %}
+          {% assign box_flex = 1 %}
+          {% assign inner_cols = 1 %}
+          {% assign font_size = "18px" %}
+          {% assign icon_size = "19px" %}
+          {% assign pad = "8px" %}
+          {% assign limit_tasks = 7 %}
+        {% endif %}
       {% else %}
-        {% assign box_flex = 1 %}
-        {% assign inner_cols = 1 %}
-        {% assign font_size = "17px" %}
-        {% assign icon_size = "18px" %}
-        {% assign pad = "8px" %}
-        {% assign limit_tasks = 5 %}
+        {% if task_count > 5 %}
+          {% assign box_flex = 2 %}
+          {% assign inner_cols = 2 %}
+          {% assign font_size = "15px" %}
+          {% assign icon_size = "16px" %}
+          {% assign pad = "6px" %}
+          {% assign limit_tasks = 12 %}
+        {% else %}
+          {% assign box_flex = 1 %}
+          {% assign inner_cols = 1 %}
+          {% assign font_size = "17px" %}
+          {% assign icon_size = "18px" %}
+          {% assign pad = "8px" %}
+          {% assign limit_tasks = 5 %}
+        {% endif %}
       {% endif %}
 
     <div style="flex: {{ box_flex }}; display: flex; flex-direction: column; background-color: #f8f8f8; border: 4px solid black; border-radius: 20px; padding: 10px; box-shadow: 6px 6px 0px black; box-sizing: border-box; overflow: hidden;">

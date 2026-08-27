@@ -22,10 +22,12 @@ await syncCalendarData();
     const html2 = await buildLiquid('Agenda', { agenda: cachedAgenda } as any);
     fs.writeFileSync('previews/agenda.html', html2, 'utf8');
     console.log('✅ agenda.html gerado!');
+    fs.writeFileSync('previews/agenda_processed.json', JSON.stringify(cachedAgenda, null, 2), 'utf8');
     
     process.exit(0);
 }
 generate();
+
 
 
 

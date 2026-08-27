@@ -219,10 +219,18 @@ export async function syncTrendingData() {
             try {
                 if (url.includes('reddit.com')) {
                     let rssUrl = url;
-                    if (!rssUrl.includes('.rss')) {
-                        if (rssUrl.endsWith('/')) rssUrl = rssUrl.slice(0, -1);
-                        rssUrl += '/.rss';
-                    }
+                    try {
+                        let u = new URL(rssUrl);
+                        if (u.pathname.includes('&')) {
+                            u.search = '?' + u.pathname.split('&').slice(1).join('&');
+                            u.pathname = u.pathname.split('&')[0];
+                        }
+                        if (!u.pathname.endsWith('.rss') && !u.pathname.endsWith('.rss/')) {
+                            if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
+                            u.pathname += '.rss';
+                        }
+                        rssUrl = u.toString();
+                    } catch(e) {}
                     
                     try {
                         const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
@@ -330,10 +338,18 @@ export async function syncNewsData() {
             try {
                 if (url.includes('reddit.com')) {
                     let rssUrl = url;
-                    if (!rssUrl.includes('.rss')) {
-                        if (rssUrl.endsWith('/')) rssUrl = rssUrl.slice(0, -1);
-                        rssUrl += '/.rss';
-                    }
+                    try {
+                        let u = new URL(rssUrl);
+                        if (u.pathname.includes('&')) {
+                            u.search = '?' + u.pathname.split('&').slice(1).join('&');
+                            u.pathname = u.pathname.split('&')[0];
+                        }
+                        if (!u.pathname.endsWith('.rss') && !u.pathname.endsWith('.rss/')) {
+                            if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
+                            u.pathname += '.rss';
+                        }
+                        rssUrl = u.toString();
+                    } catch(e) {}
                     
                     try {
                         const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));

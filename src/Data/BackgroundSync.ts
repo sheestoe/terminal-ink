@@ -205,7 +205,15 @@ export async function syncWeatherData() {
 
 export async function syncTrendingData() {
     try {
-        const parser = new Parser();
+        const parser = new Parser({
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
+        });
         
         const fetchFeed = async (url: string, name: string) => {
             try {
@@ -250,7 +258,15 @@ export async function syncTrendingData() {
 
 export async function syncNewsData() {
     try {
-        const parser = new Parser();
+        const parser = new Parser({
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
+            }
+        });
         
         const fetchFeed = async (url: string, name: string) => {
             try {

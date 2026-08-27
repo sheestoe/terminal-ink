@@ -217,7 +217,12 @@ export async function syncTrendingData() {
         
         const fetchFeed = async (url: string, name: string) => {
             try {
-                const feed = await parser.parseURL(url);
+                // Reddit blocks Render/AWS IPs aggressively. Use allorigins proxy.
+                let fetchUrl = url;
+                if (url.includes('reddit.com')) {
+                    fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                }
+                const feed = await parser.parseURL(fetchUrl);
                 return {
                     name,
                     items: feed.items.slice(0, 4).map(item => ({
@@ -270,7 +275,12 @@ export async function syncNewsData() {
         
         const fetchFeed = async (url: string, name: string) => {
             try {
-                const feed = await parser.parseURL(url);
+                // Reddit blocks Render/AWS IPs aggressively. Use allorigins proxy.
+                let fetchUrl = url;
+                if (url.includes('reddit.com')) {
+                    fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                }
+                const feed = await parser.parseURL(fetchUrl);
                 return {
                     name,
                     items: feed.items.slice(0, 4).map(item => ({

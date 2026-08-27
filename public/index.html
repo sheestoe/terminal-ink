@@ -160,9 +160,13 @@
             </div>
             <div class="plugin-config">
                 <button class="btn-sync-single" title="Sincronizar agora"><i class="ph ph-arrows-clockwise"></i></button>
-                <label class="interval-label">
-                    <input type="number" class="interval-input" min="1" max="1440">
-                    <span style="margin-top:2px;">minutos</span>
+                <label class="interval-label" style="flex-direction:column; gap:2px;">
+                    <div style="font-size:0.75rem;">API (min)</div>
+                    <input type="number" class="interval-input" min="1" max="1440" style="width:50px; text-align:center;">
+                </label>
+                <label class="interval-label" style="flex-direction:column; gap:2px;">
+                    <div style="font-size:0.75rem;">Tela (min)</div>
+                    <input type="number" class="screen-input" min="1" max="1440" style="width:50px; text-align:center;" value="15">
                 </label>
                 <label class="toggle">
                     <input type="checkbox" class="plugin-toggle">
@@ -304,6 +308,9 @@
                 
                 const inputInterval = tpl.querySelector(".interval-input");
                 inputInterval.value = state.intervals[plugin.id] || 60;
+                
+                const inputScreen = tpl.querySelector(".screen-input");
+                inputScreen.value = (state.screen_times && state.screen_times[plugin.id]) ? state.screen_times[plugin.id] : 15;
 
                 checkbox.addEventListener("change", (e) => {
                     const checked = e.target.checked;
@@ -317,6 +324,12 @@
                 
                 inputInterval.addEventListener("input", (e) => {
                     state.intervals[plugin.id] = parseInt(e.target.value) || 60;
+                    showSaveButton();
+                });
+                
+                inputScreen.addEventListener("input", (e) => {
+                    if(!state.screen_times) state.screen_times = {};
+                    state.screen_times[plugin.id] = parseInt(e.target.value) || 15;
                     showSaveButton();
                 });
                 

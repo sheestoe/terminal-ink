@@ -223,13 +223,26 @@ export async function syncNewsData() {
             }
         };
 
-        const [g1, bbc, cnn] = await Promise.all([
-            fetchFeed('https://g1.globo.com/rss/g1/', 'G1 Globo'),
-            fetchFeed('https://feeds.bbci.co.uk/portuguese/rss.xml', 'BBC Brasil'),
-            fetchFeed('https://www.cnnbrasil.com.br/feed/', 'CNN Brasil')
-        ]);
+        let rawFeeds: any = await redis.get('config:feeds:news');
+        let feedsList = [];
+        if (typeof rawFeeds === 'string') {
+            try { feedsList = JSON.parse(rawFeeds); } catch (e) {}
+        } else if (Array.isArray(rawFeeds)) {
+            feedsList = rawFeeds;
+        }
 
-        await redis.set('data:news', JSON.stringify([g1, bbc, cnn]));
+        if (feedsList.length === 0) {
+            feedsList = [
+                { url: 'https://g1.globo.com/rss/g1/', name: 'G1 Globo' },
+                { url: 'https://feeds.bbci.co.uk/portuguese/rss.xml', name: 'BBC Brasil' },
+                { url: 'https://www.cnnbrasil.com.br/feed/', name: 'CNN Brasil' }
+            ];
+        }
+
+        const feedPromises = feedsList.map((f: any) => fetchFeed(f.url, f.name));
+        const feedResults = await Promise.all(feedPromises);
+
+        await redis.set('data:news', JSON.stringify(feedResults));
         console.log("News synced to Redis");
     } catch (e) {
         console.error("News sync failed", e);

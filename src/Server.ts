@@ -40,12 +40,22 @@ app.get('/api/web/config', async (req: Request, res: Response) => {
         agenda: await redis.get('config:interval:agenda') || 120,
     };
     
-    res.json({ rotation, intervals });
+    const rawFeeds = await redis.get('config:feeds:news');
+    let news_feeds = typeof rawFeeds === 'string' ? JSON.parse(rawFeeds) : rawFeeds;
+    if (!news_feeds || !Array.isArray(news_feeds)) {
+        news_feeds = [
+            { url: 'https://g1.globo.com/rss/g1/', name: 'G1 Globo' },
+            { url: 'https://www.cnnbrasil.com.br/feed/', name: 'CNN Brasil' },
+            { url: 'https://www.reddit.com/r/brasil/hot.rss', name: 'Reddit r/brasil' }
+        ];
+    }
+    
+    res.json({ rotation, intervals, news_feeds });
 });
 
 app.post('/api/web/config', async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) return;
-    const { rotation, intervals } = req.body;
+    const { rotation, intervals, news_feeds } = req.body;
     
     if (Array.isArray(rotation)) {
         await redis.del('config:rotation');
@@ -59,6 +69,10 @@ app.post('/api/web/config', async (req: Request, res: Response) => {
         if (intervals.news) await redis.set('config:interval:news', intervals.news);
         if (intervals.todoist) await redis.set('config:interval:todoist', intervals.todoist);
         if (intervals.agenda) await redis.set('config:interval:agenda', intervals.agenda);
+    }
+    
+    if (Array.isArray(news_feeds)) {
+        await redis.set('config:feeds:news', JSON.stringify(news_feeds));
     }
     
     res.json({ success: true });

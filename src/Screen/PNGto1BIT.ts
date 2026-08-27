@@ -1,7 +1,7 @@
 import {Jimp} from "jimp";
 
 
-export async function PNGto1BIT(image: Buffer) {
+export async function PNGto1BIT(image: Buffer, targetWidth: number = 800, targetHeight: number = 480) {
     // Convert to grayscale
     const jimpImage = await Jimp.read(image);
     jimpImage.greyscale();
@@ -13,10 +13,10 @@ export async function PNGto1BIT(image: Buffer) {
         data[i] = bit4Data[i * 4];
     }
 
-    // Fixed dimensions to match the device requirements
-    const DISPLAY_BMP_IMAGE_SIZE = 48062;
-    const targetWidth = 800;
-    const targetHeight = 480;
+    // Dynamic dimensions
+    const bitsPerPixel = 1;
+    const rowSize = Math.floor((targetWidth * bitsPerPixel + 31) / 32) * 4;
+    const DISPLAY_BMP_IMAGE_SIZE = 14 + 40 + 8 + (rowSize * targetHeight);
     const targetPixelCount = targetWidth * targetHeight;
 
     // Step 2: Process the grayscale image
@@ -66,8 +66,6 @@ export async function PNGto1BIT(image: Buffer) {
     // BMP file header (14 bytes) + Info header (40 bytes)
     const fileHeaderSize = 14;
     const infoHeaderSize = 40;
-    const bitsPerPixel = 1; // 1-bit monochrome
-    const rowSize = Math.floor((targetWidth * bitsPerPixel + 31) / 32) * 4;
     const paletteSize = 8; // 2 colors * 4 bytes each
     const fileSize = DISPLAY_BMP_IMAGE_SIZE; // Exactly match the expected size
 

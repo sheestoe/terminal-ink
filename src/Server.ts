@@ -62,7 +62,9 @@ app.get('/api/display', async (req: Request, res: Response) => {
     const refresh_rate = await redis.get('config:refresh_rate') || REFRESH_RATE_SECONDS;
     const hash = await getScreenHash();
     const rotateParam = req.query.rotate ? `&rotate=${req.query.rotate}` : '';
-    const imageUrl = (process.env['PUBLIC_URL_ORIGIN'] || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/image?secret_key=' + SECRET_KEY + '&format=png' + rotateParam;
+    const widthParam = req.query.width ? `&width=${req.query.width}` : '&width=800';
+    const heightParam = req.query.height ? `&height=${req.query.height}` : '&height=600';
+    const imageUrl = (process.env['PUBLIC_URL_ORIGIN'] || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/image?secret_key=' + SECRET_KEY + '&format=png' + widthParam + heightParam + rotateParam;
     res.setHeader('Content-Type', 'application/json');
     res.json({
         image_url: imageUrl,
@@ -99,7 +101,9 @@ app.get(ROUTE_IMAGE, async (req: Request, res: Response) => {
     }
     const format = req.query.format === 'png' ? 'png' : 'bmp';
     const rotate = parseInt(req.query.rotate as string) || 0;
-    const imageBuffer = await buildScreen(format, rotate);
+    const width = parseInt(req.query.width as string) || 800;
+    const height = parseInt(req.query.height as string) || 480;
+    const imageBuffer = await buildScreen(format, rotate, width, height);
     res.setHeader('Content-Type', format === 'png' ? 'image/png' : 'image/bmp');
     res.send(imageBuffer);
 })

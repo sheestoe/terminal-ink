@@ -54,12 +54,13 @@ export async function initPuppeteer() {
 
 let isRendering = false;
 
-export async function renderToImage(html: string) {
+export async function renderToImage(html: string, width: number = 800, height: number = 480) {
     while (isRendering) {
         await new Promise(r => setTimeout(r, 100));
     }
     isRendering = true;
     try {
+        await page.setViewport({ width, height });
         await page.goto('about:blank');
         // networkidle0 forces Puppeteer to wait until all external images and fonts are fully downloaded
         await page.setContent(html, { waitUntil: "networkidle0" });

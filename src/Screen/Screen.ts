@@ -9,7 +9,7 @@ import {Jimp} from "jimp";
 
 const headerHtml = readFileSync(TEMPLATE_FOLDER + '/Header.html', 'utf8');
 
-export async function buildScreen(format: 'bmp' | 'png' = 'bmp') {
+export async function buildScreen(format: 'bmp' | 'png' = 'bmp', rotation: number = 0, width: number = 800, height: number = 480) {
     let override = await redis.get('config:override');
     let isOverride = !!override;
     let html = '';
@@ -73,11 +73,31 @@ export async function buildScreen(format: 'bmp' | 'png' = 'bmp') {
         html = '<div style="padding: 50px; font-size: 30px;">No valid screens available in rotation.</div>';
     }
 
-    const image = await renderToImage(headerHtml + html);
-    if (format === 'png') {
-        return image;
+    let finalHtml = headerHtml + html;
+    finalHtml = finalHtml.replace('width: 800px;', `width: ${width}px;`).replace('height: 480px;', `height: ${height}px;`);
+
+    const image = await renderToImage(finalHtml, width, height);
+    
+    if (format === 'png' || rotation !== 0) {
+        const jimpImage = await Jimp.read(image);
+        if (rotation !== 0) {
+            jimpImage.rotate(rotation);
+        }
+        
+        if (format === 'png') {
+            jimpImage.greyscale();
+            return await jimpImage.getBuffer("image/png");
+        }
+        
+        // If BMP but rotated, pass the rotated buffer to PNGto1BIT
+        const rotatedBuffer = await jimpImage.getBuffer("image/png");
+        // If rotated by 90 or 270, width and height are swapped for the final BMP
+        const finalWidth = (rotation === 90 || rotation === 270) ? height : width;
+        const finalHeight = (rotation === 90 || rotation === 270) ? width : height;
+        return PNGto1BIT(rotatedBuffer, finalWidth, finalHeight);
     }
-    return PNGto1BIT(image);
+    
+    return PNGto1BIT(image, width, height);
 }
 
 export async function getScreenHash() {

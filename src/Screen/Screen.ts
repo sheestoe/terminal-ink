@@ -8,7 +8,7 @@ import {redis} from "../Data/Redis.js";
 
 const headerHtml = readFileSync(TEMPLATE_FOLDER + '/Header.html', 'utf8');
 
-export async function buildScreen() {
+export async function buildScreen(format: 'bmp' | 'png' = 'bmp') {
     let override = await redis.get('config:override');
     let isOverride = !!override;
     let html = '';
@@ -73,6 +73,9 @@ export async function buildScreen() {
     }
 
     const image = await renderToImage(headerHtml + html);
+    if (format === 'png') {
+        return image;
+    }
     return PNGto1BIT(image);
 }
 

@@ -61,11 +61,11 @@ app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
 app.get('/api/display', async (req: Request, res: Response) => {
     const refresh_rate = await redis.get('config:refresh_rate') || REFRESH_RATE_SECONDS;
     const hash = await getScreenHash();
-    const imageUrl = (process.env['PUBLIC_URL_ORIGIN'] || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/image?secret_key=' + SECRET_KEY;
+    const imageUrl = (process.env['PUBLIC_URL_ORIGIN'] || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/image?secret_key=' + SECRET_KEY + '&format=png';
     res.setHeader('Content-Type', 'application/json');
     res.json({
         image_url: imageUrl,
-        filename: 'trmnl-' + hash + '.bmp',
+        filename: 'trmnl-' + hash + '.png',
         refresh_rate: Number(refresh_rate),
     });
 });
@@ -96,9 +96,10 @@ app.get(ROUTE_IMAGE, async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) {
         return;
     }
-    const image1bit = await buildScreen();
-    res.setHeader('Content-Type', 'image/bmp');
-    res.send(image1bit);
+    const format = req.query.format === 'png' ? 'png' : 'bmp';
+    const imageBuffer = await buildScreen(format);
+    res.setHeader('Content-Type', format === 'png' ? 'image/png' : 'image/bmp');
+    res.send(imageBuffer);
 })
 
 app.use((req: Request, res: Response) => {

@@ -122,11 +122,20 @@
         <div class="section">
             <div class="section-title">
                 <i class="ph-fill ph-rss text-gray-500"></i>
-                Feeds de Notícias e Reddit
+                Feeds de Notícias (Jornais)
             </div>
-            <p class="section-desc">Adicione as URLs RSS que você quer acompanhar (ex: subreddits ou jornais).</p>
+            <p class="section-desc">Adicione as URLs RSS de jornais (G1, CNN, etc) para a primeira tela de notícias.</p>
             <div id="feeds-list"></div>
             <button id="btn-add-feed" class="btn" style="background: #e5e7eb; color: #374151; width: 100%; margin-top: 12px;">+ Adicionar Feed</button>
+        </div>
+        <div class="section">
+            <div class="section-title">
+                <i class="ph-fill ph-trend-up text-gray-500"></i>
+                Feeds de Trending & Redes
+            </div>
+            <p class="section-desc">Adicione as URLs RSS para a segunda tela (ex: subreddits como r/brasil, HackerNews).</p>
+            <div id="trending-list"></div>
+            <button id="btn-add-trending" class="btn" style="background: #e5e7eb; color: #374151; width: 100%; margin-top: 12px;">+ Adicionar Feed de Trending</button>
         </div>
     </main>
 
@@ -158,18 +167,21 @@
         const API_URL = "/api/web/config";
         const AVAILABLE_PLUGINS = [
             { id: "weather", name: "Clima", icon: "ph-cloud-sun" },
-            { id: "news", name: "Notícias & Reddit", icon: "ph-newspaper" },
+            { id: "news", name: "Notícias (Jornais)", icon: "ph-newspaper" },
+            { id: "trending", name: "Trending & Redes", icon: "ph-trend-up" },
             { id: "todoist", name: "Todoist", icon: "ph-check-square-offset" },
             { id: "agenda", name: "Agenda", icon: "ph-calendar-check" }
         ];
 
-        let state = { rotation: [], intervals: {}, news_feeds: [] };
+        let state = { rotation: [], intervals: {}, news_feeds: [], trending_feeds: [] };
         const els = {
             loader: document.getElementById("loader"),
             btnSave: document.getElementById("btn-save"),
             pluginList: document.getElementById("plugin-list"),
             feedsList: document.getElementById("feeds-list"),
-            btnAddFeed: document.getElementById("btn-add-feed")
+            btnAddFeed: document.getElementById("btn-add-feed"),
+            trendingList: document.getElementById("trending-list"),
+            btnAddTrending: document.getElementById("btn-add-trending")
         };
 
         async function init() {
@@ -222,9 +234,48 @@
             showSaveButton();
         });
 
+        function renderTrending() {
+            els.trendingList.innerHTML = "";
+            (state.trending_feeds || []).forEach((feed, index) => {
+                const div = document.createElement("div");
+                div.className = "feed-item";
+                div.innerHTML = `
+                    <div class="feed-inputs">
+                        <input type="text" class="feed-input feed-name" placeholder="Nome (ex: HackerNews)" value="${feed.name || ''}">
+                        <input type="text" class="feed-input feed-url" placeholder="URL do RSS" value="${feed.url || ''}">
+                    </div>
+                    <button class="btn-delete" data-index="${index}"><i class="ph ph-trash"></i></button>
+                `;
+                
+                div.querySelector(".feed-name").addEventListener("input", (e) => {
+                    state.trending_feeds[index].name = e.target.value;
+                    showSaveButton();
+                });
+                div.querySelector(".feed-url").addEventListener("input", (e) => {
+                    state.trending_feeds[index].url = e.target.value;
+                    showSaveButton();
+                });
+                div.querySelector(".btn-delete").addEventListener("click", () => {
+                    state.trending_feeds.splice(index, 1);
+                    renderTrending();
+                    showSaveButton();
+                });
+                
+                els.trendingList.appendChild(div);
+            });
+        }
+
+        els.btnAddTrending.addEventListener("click", () => {
+            if (!state.trending_feeds) state.trending_feeds = [];
+            state.trending_feeds.push({ name: "", url: "" });
+            renderTrending();
+            showSaveButton();
+        });
+
         function render() {
             els.pluginList.innerHTML = "";
             renderFeeds();
+            renderTrending();
             AVAILABLE_PLUGINS.forEach(plugin => {
                 const tpl = document.getElementById("tpl-plugin").content.cloneNode(true);
                 const isActive = state.rotation.includes(plugin.id);

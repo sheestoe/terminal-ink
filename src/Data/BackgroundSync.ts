@@ -203,6 +203,51 @@ export async function syncWeatherData() {
     }
 }
 
+export async function syncTrendingData() {
+    try {
+        const parser = new Parser();
+        
+        const fetchFeed = async (url: string, name: string) => {
+            try {
+                const feed = await parser.parseURL(url);
+                return {
+                    name,
+                    items: feed.items.slice(0, 4).map(item => ({
+                        title: item.title,
+                        date: item.pubDate
+                    }))
+                };
+            } catch (e) {
+                console.error("Failed to fetch", name, e);
+                return { name, items: [] };
+            }
+        };
+
+        let rawFeeds: any = await redis.get('config:feeds:trending');
+        let feedsList = [];
+        if (typeof rawFeeds === 'string') {
+            try { feedsList = JSON.parse(rawFeeds); } catch (e) {}
+        } else if (Array.isArray(rawFeeds)) {
+            feedsList = rawFeeds;
+        }
+
+        if (feedsList.length === 0) {
+            feedsList = [
+                { url: 'https://www.reddit.com/r/brasil/hot.rss', name: 'Reddit r/brasil' },
+                { url: 'https://www.reddit.com/r/technology/hot.rss', name: 'Tech Trending' }
+            ];
+        }
+
+        const feedPromises = feedsList.map((f: any) => fetchFeed(f.url, f.name));
+        const feedResults = await Promise.all(feedPromises);
+
+        await redis.set('data:trending', JSON.stringify(feedResults));
+        console.log("Trending synced to Redis");
+    } catch (e) {
+        console.error("Trending sync failed", e);
+    }
+}
+
 export async function syncNewsData() {
     try {
         const parser = new Parser();
@@ -323,6 +368,7 @@ export async function checkAndSync() {
         // Intervals (in minutes)
         const iWeather = parseInt(await redis.get('config:interval:weather') as string) || 60;
         const iNews = parseInt(await redis.get('config:interval:news') as string) || 120;
+        const iTrending = parseInt(await redis.get('config:interval:trending') as string) || 120;
         const iTodoist = parseInt(await redis.get('config:interval:todoist') as string) || 15;
         const iCalendar = parseInt(await redis.get('config:interval:agenda') as string) || 120;
 
@@ -338,6 +384,13 @@ export async function checkAndSync() {
         if (!newsExpire || now > parseInt(newsExpire as string)) {
             await syncNewsData();
             await redis.set('expire:news', (now + iNews * 60 * 1000).toString());
+        }
+        
+        // 2b. TRENDING
+        const trendingExpire = await redis.get('expire:trending');
+        if (!trendingExpire || now > parseInt(trendingExpire as string)) {
+            await syncTrendingData();
+            await redis.set('expire:trending', (now + iTrending * 60 * 1000).toString());
         }
 
         // 3. TODOIST

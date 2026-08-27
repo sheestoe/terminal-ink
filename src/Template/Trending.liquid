@@ -1,0 +1,43 @@
+<head>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<div style="background-color: white; width: 800px; height: 480px; padding: 20px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
+  
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 20px;">
+    <div style="font-size: 36px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
+      <i class="ph-fill ph-trend-up" style="margin-right: 10px;"></i>TRENDING & REDES
+    </div>
+    <div style="font-size: 20px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
+      Em Alta
+    </div>
+  </div>
+
+  <!-- 3 Columns -->
+  <div style="display: flex; gap: 30px; flex: 1;">
+    
+    {% for channel in news %}
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      
+      <!-- Channel Title -->
+      <div style="font-size: 20px; font-weight: 800; text-transform: uppercase; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 15px;">
+        {{ channel.name }}
+      </div>
+
+      <!-- News Items -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for item in channel.items limit: 4 %}
+        <div style="display: flex; gap: 8px;">
+          <div style="font-size: 16px; margin-top: 2px;"><i class="ph-fill ph-caret-right"></i></div>
+          <div style="font-size: 17px; font-weight: 600; line-height: 1.2;">
+            {{ item.title }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      
+    </div>
+    {% endfor %}
+
+  </div>
+</div>

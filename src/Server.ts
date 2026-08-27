@@ -36,6 +36,7 @@ app.get('/api/web/config', async (req: Request, res: Response) => {
     const intervals = {
         weather: await redis.get('config:interval:weather') || 60,
         news: await redis.get('config:interval:news') || 120,
+        trending: await redis.get('config:interval:trending') || 120,
         todoist: await redis.get('config:interval:todoist') || 15,
         agenda: await redis.get('config:interval:agenda') || 120,
     };
@@ -46,16 +47,24 @@ app.get('/api/web/config', async (req: Request, res: Response) => {
         news_feeds = [
             { url: 'https://g1.globo.com/rss/g1/', name: 'G1 Globo' },
             { url: 'https://www.cnnbrasil.com.br/feed/', name: 'CNN Brasil' },
-            { url: 'https://www.reddit.com/r/brasil/hot.rss', name: 'Reddit r/brasil' }
+        ];
+    }
+
+    const rawTrending = await redis.get('config:feeds:trending');
+    let trending_feeds = typeof rawTrending === 'string' ? JSON.parse(rawTrending) : rawTrending;
+    if (!trending_feeds || !Array.isArray(trending_feeds)) {
+        trending_feeds = [
+            { url: 'https://www.reddit.com/r/brasil/hot.rss', name: 'Reddit r/brasil' },
+            { url: 'https://www.reddit.com/r/technology/hot.rss', name: 'Tech Trending' }
         ];
     }
     
-    res.json({ rotation, intervals, news_feeds });
+    res.json({ rotation, intervals, news_feeds, trending_feeds });
 });
 
 app.post('/api/web/config', async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) return;
-    const { rotation, intervals, news_feeds } = req.body;
+    const { rotation, intervals, news_feeds, trending_feeds } = req.body;
     
     if (Array.isArray(rotation)) {
         await redis.del('config:rotation');
@@ -67,12 +76,16 @@ app.post('/api/web/config', async (req: Request, res: Response) => {
     if (intervals) {
         if (intervals.weather) await redis.set('config:interval:weather', intervals.weather);
         if (intervals.news) await redis.set('config:interval:news', intervals.news);
+        if (intervals.trending) await redis.set('config:interval:trending', intervals.trending);
         if (intervals.todoist) await redis.set('config:interval:todoist', intervals.todoist);
         if (intervals.agenda) await redis.set('config:interval:agenda', intervals.agenda);
     }
     
     if (Array.isArray(news_feeds)) {
         await redis.set('config:feeds:news', JSON.stringify(news_feeds));
+    }
+    if (Array.isArray(trending_feeds)) {
+        await redis.set('config:feeds:trending', JSON.stringify(trending_feeds));
     }
     
     res.json({ success: true });

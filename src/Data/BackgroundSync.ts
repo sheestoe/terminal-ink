@@ -217,12 +217,21 @@ export async function syncTrendingData() {
         
         const fetchFeed = async (url: string, name: string) => {
             try {
-                // Reddit blocks Render/AWS IPs aggressively. Use allorigins proxy.
-                let fetchUrl = url;
                 if (url.includes('reddit.com')) {
-                    fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(url));
+                    const data = await r.json();
+                    if (data && data.items) {
+                        return {
+                            name,
+                            items: data.items.slice(0, 4).map((item: any) => ({
+                                title: item.title,
+                                date: item.pubDate
+                            }))
+                        };
+                    }
                 }
-                const feed = await parser.parseURL(fetchUrl);
+                
+                const feed = await parser.parseURL(url);
                 return {
                     name,
                     items: feed.items.slice(0, 4).map(item => ({
@@ -275,12 +284,21 @@ export async function syncNewsData() {
         
         const fetchFeed = async (url: string, name: string) => {
             try {
-                // Reddit blocks Render/AWS IPs aggressively. Use allorigins proxy.
-                let fetchUrl = url;
                 if (url.includes('reddit.com')) {
-                    fetchUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(url));
+                    const data = await r.json();
+                    if (data && data.items) {
+                        return {
+                            name,
+                            items: data.items.slice(0, 4).map((item: any) => ({
+                                title: item.title,
+                                date: item.pubDate
+                            }))
+                        };
+                    }
                 }
-                const feed = await parser.parseURL(fetchUrl);
+                
+                const feed = await parser.parseURL(url);
                 return {
                     name,
                     items: feed.items.slice(0, 4).map(item => ({

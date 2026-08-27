@@ -31,21 +31,36 @@ function isSecretKeyValid(req: Request, res: Response) {
 
 app.get('/api/web/config', async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) return;
-    const refresh_rate = await redis.get('config:refresh_rate') || 3600;
     const rotation = await redis.lrange('config:rotation', 0, -1) || [];
-    res.json({ refresh_rate, rotation });
+    
+    const intervals = {
+        weather: await redis.get('config:interval:weather') || 60,
+        news: await redis.get('config:interval:news') || 120,
+        todoist: await redis.get('config:interval:todoist') || 15,
+        agenda: await redis.get('config:interval:agenda') || 120,
+    };
+    
+    res.json({ rotation, intervals });
 });
 
 app.post('/api/web/config', async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) return;
-    const { refresh_rate, rotation } = req.body;
-    if (refresh_rate) await redis.set('config:refresh_rate', refresh_rate);
+    const { rotation, intervals } = req.body;
+    
     if (Array.isArray(rotation)) {
         await redis.del('config:rotation');
         if (rotation.length > 0) {
             await redis.rpush('config:rotation', ...rotation);
         }
     }
+    
+    if (intervals) {
+        if (intervals.weather) await redis.set('config:interval:weather', intervals.weather);
+        if (intervals.news) await redis.set('config:interval:news', intervals.news);
+        if (intervals.todoist) await redis.set('config:interval:todoist', intervals.todoist);
+        if (intervals.agenda) await redis.set('config:interval:agenda', intervals.agenda);
+    }
+    
     res.json({ success: true });
 });
 

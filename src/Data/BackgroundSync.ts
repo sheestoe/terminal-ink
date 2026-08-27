@@ -307,36 +307,38 @@ export async function checkAndSync() {
     try {
         const now = Date.now();
 
-        // 1. WEATHER (Expires at 6:00 AM next day, or if forced)
+        // Intervals (in minutes)
+        const iWeather = parseInt(await redis.get('config:interval:weather') as string) || 60;
+        const iNews = parseInt(await redis.get('config:interval:news') as string) || 120;
+        const iTodoist = parseInt(await redis.get('config:interval:todoist') as string) || 15;
+        const iCalendar = parseInt(await redis.get('config:interval:agenda') as string) || 120;
+
+        // 1. WEATHER
         const weatherExpire = await redis.get('expire:weather');
         if (!weatherExpire || now > parseInt(weatherExpire as string)) {
             await syncWeatherData();
-            
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(6, 0, 0, 0);
-            await redis.set('expire:weather', tomorrow.getTime().toString());
+            await redis.set('expire:weather', (now + iWeather * 60 * 1000).toString());
         }
 
-        // 2. NEWS (Expires every 2 hours, or if forced)
+        // 2. NEWS
         const newsExpire = await redis.get('expire:news');
         if (!newsExpire || now > parseInt(newsExpire as string)) {
             await syncNewsData();
-            await redis.set('expire:news', (now + 2 * 60 * 60 * 1000).toString());
+            await redis.set('expire:news', (now + iNews * 60 * 1000).toString());
         }
 
-        // 3. TODOIST (Expires every 15 minutes, or if forced)
+        // 3. TODOIST
         const todoistExpire = await redis.get('expire:todoist');
         if (!todoistExpire || now > parseInt(todoistExpire as string)) {
             await syncTodoistData();
-            await redis.set('expire:todoist', (now + 2 * 60 * 60 * 1000).toString());
+            await redis.set('expire:todoist', (now + iTodoist * 60 * 1000).toString());
         }
 
-            // 4. CALENDAR (Expires every 2 hours, or if forced)
+        // 4. CALENDAR
         const calExpire = await redis.get('expire:calendar');
         if (!calExpire || now > parseInt(calExpire as string)) {
             await syncCalendarData();
-            await redis.set('expire:calendar', (now + 2 * 60 * 60 * 1000).toString());
+            await redis.set('expire:calendar', (now + iCalendar * 60 * 1000).toString());
         }
     } catch (e) {
         console.error("Error in checkAndSync:", e);

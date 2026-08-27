@@ -74,7 +74,7 @@ export async function buildScreen(format: 'bmp' | 'png' = 'bmp', rotation: numbe
     }
 
     let finalHtml = headerHtml + html;
-    finalHtml = finalHtml.replace('width: 800px;', `width: ${width}px;`).replace('height: 480px;', `height: ${height}px;`);
+    finalHtml = finalHtml.replace(/width: 800px;/g, `width: ${width}px;`).replace(/height: 480px;/g, `height: ${height}px;`);
 
     const image = await renderToImage(finalHtml, width, height);
     

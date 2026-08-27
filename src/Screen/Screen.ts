@@ -5,6 +5,7 @@ import {buildLiquid} from "./BuildLiquid.js";
 import crypto from "crypto";
 import {readFileSync} from "node:fs";
 import {redis} from "../Data/Redis.js";
+import {Jimp} from "jimp";
 
 const headerHtml = readFileSync(TEMPLATE_FOLDER + '/Header.html', 'utf8');
 

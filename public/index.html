@@ -182,12 +182,12 @@
             { id: "agenda", name: "Agenda", icon: "ph-calendar-check" }
         ];
 
-        let state = { rotation: [], screen_times: {
-                weather: document.getElementById("screen-weather").value,
-                news: document.getElementById("screen-news").value,
-                trending: document.getElementById("screen-trending").value,
-                todoist: document.getElementById("screen-todoist").value,
-                agenda: document.getElementById("screen-agenda").value,
+        let state = { rotation: [], screen_times: {}, screen_times: {
+                weather: document.getElementById('screen-weather') ? document.getElementById('screen-weather').value : 15,
+                news: document.getElementById('screen-news') ? document.getElementById('screen-news').value : 15,
+                trending: document.getElementById('screen-trending') ? document.getElementById('screen-trending').value : 15,
+                todoist: document.getElementById('screen-todoist') ? document.getElementById('screen-todoist').value : 15,
+                agenda: document.getElementById('screen-agenda') ? document.getElementById('screen-agenda').value : 15,
             },
             intervals: {}, news_feeds: [], trending_feeds: [] };
         const els = {

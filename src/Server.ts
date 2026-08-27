@@ -18,15 +18,36 @@ import { google } from 'googleapis';
 export const app = express();
 startBackgroundSync();
 app.use(express.json());
+app.use(express.static('public'));
 
 function isSecretKeyValid(req: Request, res: Response) {
     if (req.query['secret_key'] !== SECRET_KEY) {
-        res.setHeader('Content-Type', 'application/json');
-        res.status(401).json('Wrong or missing secret_key');
+        console.error(`[Display API] Invalid secret key provided: ${req.query['secret_key']}`);
+        res.status(401).json({ error: 'Unauthorized', message: 'Invalid or missing secret_key query parameter.' });
         return false;
     }
     return true;
 }
+
+app.get('/api/web/config', async (req: Request, res: Response) => {
+    if (!isSecretKeyValid(req, res)) return;
+    const refresh_rate = await redis.get('config:refresh_rate') || 3600;
+    const rotation = await redis.lrange('config:rotation', 0, -1) || [];
+    res.json({ refresh_rate, rotation });
+});
+
+app.post('/api/web/config', async (req: Request, res: Response) => {
+    if (!isSecretKeyValid(req, res)) return;
+    const { refresh_rate, rotation } = req.body;
+    if (refresh_rate) await redis.set('config:refresh_rate', refresh_rate);
+    if (Array.isArray(rotation)) {
+        await redis.del('config:rotation');
+        if (rotation.length > 0) {
+            await redis.rpush('config:rotation', ...rotation);
+        }
+    }
+    res.json({ success: true });
+});
 
 // Google OAuth routes — must be registered BEFORE BYOS middleware
 const oauth2Client = new google.auth.OAuth2(

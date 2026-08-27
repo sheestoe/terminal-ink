@@ -66,7 +66,15 @@ app.get('/api/display', async (req: Request, res: Response) => {
     const headerWidth = req.headers['png-width'] ? parseInt(req.headers['png-width'] as string) : 800;
     const headerHeight = req.headers['png-height'] ? parseInt(req.headers['png-height'] as string) : 600;
     const isKOReader = !!req.headers['png-width'];
-    let deviceConfig: any = { width: headerWidth, height: headerHeight, rotate: isKOReader ? 0 : 90, format: 'png' }; // Default settings
+    
+    // Auto-rotate if KOReader is in portrait mode (width < height). 
+    // TRMNL plugins are designed for landscape, so we render landscape and rotate to fit portrait.
+    const isPortrait = headerWidth < headerHeight;
+    const autoWidth = isPortrait ? headerHeight : headerWidth;
+    const autoHeight = isPortrait ? headerWidth : headerHeight;
+    const autoRotate = isPortrait ? 90 : (isKOReader ? 0 : 90);
+    
+    let deviceConfig: any = { width: autoWidth, height: autoHeight, rotate: autoRotate, format: 'png' }; // Default settings
     
     const storedConfig = await redis.get(`config:device:${deviceId}`);
     if (storedConfig) {

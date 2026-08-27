@@ -98,6 +98,14 @@
             border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
         .btn-delete:active { opacity: 0.8; }
+        .btn-suggest {
+            padding: 4px 10px; font-size: 0.78rem; border-radius: 20px; cursor: pointer;
+            background: #f3f4f6; border: 1px solid var(--border); color: #374151;
+            transition: background 0.15s;
+        }
+        .btn-suggest:hover { background: #e5e7eb; }
+        .btn-suggest.already-added { background: #d1fae5; border-color: #6ee7b7; color: #065f46; cursor: default; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-sync-single {
             background: #e5e7eb; color: #374151; border: none; width: 32px; height: 32px;
             border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -130,18 +138,34 @@
         <div class="section">
             <div class="section-title">
                 <i class="ph-fill ph-rss text-gray-500"></i>
-                Feeds de Notícias (Jornais)
+                Feeds de Notícias <span id="news-count" style="font-size:0.75rem; color:#6b7280; font-weight:400;">(0/3)</span>
             </div>
-            <p class="section-desc">Adicione as URLs RSS de jornais (G1, CNN, etc) para a primeira tela de notícias.</p>
+            <p class="section-desc">Até 3 feeds RSS de jornais. Clique em uma sugestão ou adicione manualmente.</p>
+            <div class="feed-suggestions" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                <button class="btn-suggest" data-list="news" data-name="G1 Globo" data-url="https://g1.globo.com/rss/g1/">G1 Globo</button>
+                <button class="btn-suggest" data-list="news" data-name="BBC Brasil" data-url="https://feeds.bbci.co.uk/portuguese/rss.xml">BBC Brasil</button>
+                <button class="btn-suggest" data-list="news" data-name="CNN Brasil" data-url="https://www.cnnbrasil.com.br/feed/">CNN Brasil</button>
+                <button class="btn-suggest" data-list="news" data-name="Folha" data-url="https://feeds.folha.uol.com.br/emcimadahora/rss091.xml">Folha</button>
+                <button class="btn-suggest" data-list="news" data-name="UOL" data-url="https://rss.uol.com.br/feed/noticias.xml">UOL</button>
+                <button class="btn-suggest" data-list="news" data-name="Agência Brasil" data-url="https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml">Agência Brasil</button>
+            </div>
             <div id="feeds-list"></div>
             <button id="btn-add-feed" class="btn" style="background: #e5e7eb; color: #374151; width: 100%; margin-top: 12px;">+ Adicionar Feed</button>
         </div>
         <div class="section">
             <div class="section-title">
                 <i class="ph-fill ph-trend-up text-gray-500"></i>
-                Feeds de Trending & Redes
+                Feeds de Trending <span id="trending-count" style="font-size:0.75rem; color:#6b7280; font-weight:400;">(0/3)</span>
             </div>
-            <p class="section-desc">Adicione as URLs RSS para a segunda tela (ex: subreddits como r/brasil, HackerNews).</p>
+            <p class="section-desc">Até 3 feeds RSS de tendências. Clique em uma sugestão ou adicione manualmente.</p>
+            <div class="feed-suggestions" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                <button class="btn-suggest" data-list="trending" data-name="HackerNews" data-url="https://news.ycombinator.com/rss">HackerNews</button>
+                <button class="btn-suggest" data-list="trending" data-name="Ars Technica" data-url="https://feeds.arstechnica.com/arstechnica/index">Ars Technica</button>
+                <button class="btn-suggest" data-list="trending" data-name="The Verge" data-url="https://www.theverge.com/rss/index.xml">The Verge</button>
+                <button class="btn-suggest" data-list="trending" data-name="TechCrunch" data-url="https://techcrunch.com/feed/">TechCrunch</button>
+                <button class="btn-suggest" data-list="trending" data-name="Wired" data-url="https://www.wired.com/feed/rss">Wired</button>
+                <button class="btn-suggest" data-list="trending" data-name="Gizmodo BR" data-url="https://gizmodo.uol.com.br/feed/">Gizmodo BR</button>
+            </div>
             <div id="trending-list"></div>
             <button id="btn-add-trending" class="btn" style="background: #e5e7eb; color: #374151; width: 100%; margin-top: 12px;">+ Adicionar Feed de Trending</button>
         </div>
@@ -216,6 +240,19 @@
             }
         }
 
+        const MAX_FEEDS = 3;
+
+        function updateFeedUI(list, listEl, addBtn, countEl) {
+            const n = (list || []).length;
+            countEl.textContent = `(${n}/${MAX_FEEDS})`;
+            addBtn.disabled = n >= MAX_FEEDS;
+            // Update suggestion chip states
+            const addedUrls = new Set((list || []).map(f => f.url));
+            document.querySelectorAll(`.btn-suggest[data-list="${listEl.id === 'feeds-list' ? 'news' : 'trending'}"]`).forEach(btn => {
+                btn.classList.toggle('already-added', addedUrls.has(btn.dataset.url));
+            });
+        }
+
         function renderFeeds() {
             els.feedsList.innerHTML = "";
             (state.news_feeds || []).forEach((feed, index) => {
@@ -223,18 +260,18 @@
                 div.className = "feed-item";
                 div.innerHTML = `
                     <div class="feed-inputs">
-                        <input type="text" class="feed-input feed-name" placeholder="Nome (ex: Reddit Brasil)" value="${feed.name || ''}">
+                        <input type="text" class="feed-input feed-name" placeholder="Nome (ex: G1 Globo)" value="${feed.name || ''}">
                         <input type="text" class="feed-input feed-url" placeholder="URL do RSS" value="${feed.url || ''}">
                     </div>
-                    <button class="btn-delete" data-index="${index}"><i class="ph ph-trash"></i></button>
+                    <button class="btn-delete"><i class="ph ph-trash"></i></button>
                 `;
-                
                 div.querySelector(".feed-name").addEventListener("input", (e) => {
                     state.news_feeds[index].name = e.target.value;
                     showSaveButton();
                 });
                 div.querySelector(".feed-url").addEventListener("input", (e) => {
                     state.news_feeds[index].url = e.target.value;
+                    updateFeedUI(state.news_feeds, els.feedsList, els.btnAddFeed, document.getElementById("news-count"));
                     showSaveButton();
                 });
                 div.querySelector(".btn-delete").addEventListener("click", () => {
@@ -242,13 +279,14 @@
                     renderFeeds();
                     showSaveButton();
                 });
-                
                 els.feedsList.appendChild(div);
             });
+            updateFeedUI(state.news_feeds, els.feedsList, els.btnAddFeed, document.getElementById("news-count"));
         }
 
         els.btnAddFeed.addEventListener("click", () => {
             if (!state.news_feeds) state.news_feeds = [];
+            if (state.news_feeds.length >= MAX_FEEDS) return;
             state.news_feeds.push({ name: "", url: "" });
             renderFeeds();
             showSaveButton();
@@ -264,15 +302,15 @@
                         <input type="text" class="feed-input feed-name" placeholder="Nome (ex: HackerNews)" value="${feed.name || ''}">
                         <input type="text" class="feed-input feed-url" placeholder="URL do RSS" value="${feed.url || ''}">
                     </div>
-                    <button class="btn-delete" data-index="${index}"><i class="ph ph-trash"></i></button>
+                    <button class="btn-delete"><i class="ph ph-trash"></i></button>
                 `;
-                
                 div.querySelector(".feed-name").addEventListener("input", (e) => {
                     state.trending_feeds[index].name = e.target.value;
                     showSaveButton();
                 });
                 div.querySelector(".feed-url").addEventListener("input", (e) => {
                     state.trending_feeds[index].url = e.target.value;
+                    updateFeedUI(state.trending_feeds, els.trendingList, els.btnAddTrending, document.getElementById("trending-count"));
                     showSaveButton();
                 });
                 div.querySelector(".btn-delete").addEventListener("click", () => {
@@ -280,16 +318,32 @@
                     renderTrending();
                     showSaveButton();
                 });
-                
                 els.trendingList.appendChild(div);
             });
+            updateFeedUI(state.trending_feeds, els.trendingList, els.btnAddTrending, document.getElementById("trending-count"));
         }
 
         els.btnAddTrending.addEventListener("click", () => {
             if (!state.trending_feeds) state.trending_feeds = [];
+            if (state.trending_feeds.length >= MAX_FEEDS) return;
             state.trending_feeds.push({ name: "", url: "" });
             renderTrending();
             showSaveButton();
+        });
+
+        // Suggestion chips
+        document.querySelectorAll(".btn-suggest").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const listKey = btn.dataset.list === "news" ? "news_feeds" : "trending_feeds";
+                if (!state[listKey]) state[listKey] = [];
+                if (state[listKey].length >= MAX_FEEDS) return;
+                // Don't add duplicates
+                if (state[listKey].some(f => f.url === btn.dataset.url)) return;
+                state[listKey].push({ name: btn.dataset.name, url: btn.dataset.url });
+                if (btn.dataset.list === "news") renderFeeds();
+                else renderTrending();
+                showSaveButton();
+            });
         });
 
         function render() {

@@ -63,7 +63,10 @@ app.get('/api/display', async (req: Request, res: Response) => {
     const hash = await getScreenHash();
     
     const deviceId = req.headers['id'] || 'default';
-    let deviceConfig: any = { width: 800, height: 600, rotate: 90, format: 'png' }; // Default Kindle 8th Gen settings
+    const headerWidth = req.headers['png-width'] ? parseInt(req.headers['png-width'] as string) : 800;
+    const headerHeight = req.headers['png-height'] ? parseInt(req.headers['png-height'] as string) : 600;
+    const isKOReader = !!req.headers['png-width'];
+    let deviceConfig: any = { width: headerWidth, height: headerHeight, rotate: isKOReader ? 0 : 90, format: 'png' }; // Default settings
     
     const storedConfig = await redis.get(`config:device:${deviceId}`);
     if (storedConfig) {

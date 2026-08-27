@@ -94,11 +94,19 @@ app.post('/api/web/config', async (req: Request, res: Response) => {
 app.post('/api/web/sync-now', async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) return;
     
-    await redis.del('expire:weather');
-    await redis.del('expire:news');
-    await redis.del('expire:trending');
-    await redis.del('expire:todoist');
-    await redis.del('expire:calendar');
+    const { plugin } = req.body;
+    
+    if (plugin) {
+        // The calendar plugin is named "agenda" in the UI array but "calendar" in the expire keys
+        const expireKey = plugin === 'agenda' ? 'calendar' : plugin;
+        await redis.del(`expire:${expireKey}`);
+    } else {
+        await redis.del('expire:weather');
+        await redis.del('expire:news');
+        await redis.del('expire:trending');
+        await redis.del('expire:todoist');
+        await redis.del('expire:calendar');
+    }
     
     // trigger check in background so we don't block response
     checkAndSync();

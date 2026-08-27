@@ -297,9 +297,10 @@ export async function ensureDefaultConfig() {
         await redis.set('config:refresh_rate', 3600);
     }
 
-    // Temporarily force rotation to only Todoist and Agenda for user testing
-    await redis.del('config:rotation');
-    await redis.rpush('config:rotation', 'todoist', 'agenda');
+    const rotation = await redis.lrange('config:rotation', 0, -1);
+    if (!rotation || rotation.length === 0) {
+        await redis.rpush('config:rotation', 'weather', 'news', 'todoist', 'todoist_agenda');
+    }
 }
 
 export async function checkAndSync() {

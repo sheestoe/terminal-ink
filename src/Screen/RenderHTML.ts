@@ -55,7 +55,7 @@ export async function initPuppeteer() {
 let isRendering = false;
 
 export async function renderToImage(html: string, width: number = 800, height: number = 480) {
-    while (isRendering) {
+    while (!page || isRendering) {
         await new Promise(r => setTimeout(r, 100));
     }
     isRendering = true;

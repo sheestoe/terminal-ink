@@ -218,7 +218,12 @@ export async function syncTrendingData() {
         const fetchFeed = async (url: string, name: string) => {
             try {
                 if (url.includes('reddit.com')) {
-                    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(url));
+                    let rssUrl = url;
+                    if (!rssUrl.includes('.rss')) {
+                        if (rssUrl.endsWith('/')) rssUrl = rssUrl.slice(0, -1);
+                        rssUrl += '/.rss';
+                    }
+                    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
                     const data = await r.json();
                     if (data && data.items) {
                         return {
@@ -285,7 +290,12 @@ export async function syncNewsData() {
         const fetchFeed = async (url: string, name: string) => {
             try {
                 if (url.includes('reddit.com')) {
-                    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(url));
+                    let rssUrl = url;
+                    if (!rssUrl.includes('.rss')) {
+                        if (rssUrl.endsWith('/')) rssUrl = rssUrl.slice(0, -1);
+                        rssUrl += '/.rss';
+                    }
+                    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
                     const data = await r.json();
                     if (data && data.items) {
                         return {

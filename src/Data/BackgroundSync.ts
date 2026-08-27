@@ -223,17 +223,56 @@ export async function syncTrendingData() {
                         if (rssUrl.endsWith('/')) rssUrl = rssUrl.slice(0, -1);
                         rssUrl += '/.rss';
                     }
-                    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
-                    const data = await r.json();
-                    if (data && data.items) {
-                        return {
-                            name,
-                            items: data.items.slice(0, 4).map((item: any) => ({
-                                title: item.title,
-                                date: item.pubDate
-                            }))
-                        };
-                    }
+                    
+                    try {
+                        const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
+                        const data = await r.json();
+                        if (data && data.items && data.items.length > 0) {
+                            return {
+                                name,
+                                items: data.items.slice(0, 4).map((item: any) => ({
+                                    title: item.title,
+                                    date: item.pubDate
+                                }))
+                            };
+                        }
+                    } catch(e) {}
+                    
+                    try {
+                        const res = await fetch(rssUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
+                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                                'Accept-Language': 'en-US,en;q=0.5'
+                            }
+                        });
+                        const xml = await res.text();
+                        const feed = await parser.parseString(xml);
+                        if (feed && feed.items && feed.items.length > 0) {
+                            return {
+                                name,
+                                items: feed.items.slice(0, 4).map((item: any) => ({
+                                    title: item.title,
+                                    date: item.pubDate
+                                }))
+                            };
+                        }
+                    } catch(e) {}
+                    
+                    try {
+                        const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl));
+                        const data = await res.json();
+                        const feed = await parser.parseString(data.contents);
+                        if (feed && feed.items) {
+                            return {
+                                name,
+                                items: feed.items.slice(0, 4).map((item: any) => ({
+                                    title: item.title,
+                                    date: item.pubDate
+                                }))
+                            };
+                        }
+                    } catch(e) {}
                 }
                 
                 const feed = await parser.parseURL(url);
@@ -295,17 +334,56 @@ export async function syncNewsData() {
                         if (rssUrl.endsWith('/')) rssUrl = rssUrl.slice(0, -1);
                         rssUrl += '/.rss';
                     }
-                    const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
-                    const data = await r.json();
-                    if (data && data.items) {
-                        return {
-                            name,
-                            items: data.items.slice(0, 4).map((item: any) => ({
-                                title: item.title,
-                                date: item.pubDate
-                            }))
-                        };
-                    }
+                    
+                    try {
+                        const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
+                        const data = await r.json();
+                        if (data && data.items && data.items.length > 0) {
+                            return {
+                                name,
+                                items: data.items.slice(0, 4).map((item: any) => ({
+                                    title: item.title,
+                                    date: item.pubDate
+                                }))
+                            };
+                        }
+                    } catch(e) {}
+                    
+                    try {
+                        const res = await fetch(rssUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
+                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                                'Accept-Language': 'en-US,en;q=0.5'
+                            }
+                        });
+                        const xml = await res.text();
+                        const feed = await parser.parseString(xml);
+                        if (feed && feed.items && feed.items.length > 0) {
+                            return {
+                                name,
+                                items: feed.items.slice(0, 4).map((item: any) => ({
+                                    title: item.title,
+                                    date: item.pubDate
+                                }))
+                            };
+                        }
+                    } catch(e) {}
+                    
+                    try {
+                        const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl));
+                        const data = await res.json();
+                        const feed = await parser.parseString(data.contents);
+                        if (feed && feed.items) {
+                            return {
+                                name,
+                                items: feed.items.slice(0, 4).map((item: any) => ({
+                                    title: item.title,
+                                    date: item.pubDate
+                                }))
+                            };
+                        }
+                    } catch(e) {}
                 }
                 
                 const feed = await parser.parseURL(url);

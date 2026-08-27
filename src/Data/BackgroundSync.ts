@@ -11,13 +11,13 @@ export async function syncCalendarData() {
         localToday.setUTCHours(0, 0, 0, 0);
 
         const days: { date: string, dayName: string, tasks: any[] }[] = [];
-        const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÃ‡A', 'QUARTA', 'QUINTA', 'SEXTA', 'SÃBADO'];
+        const dayNames = ['DOMINGO', 'SEGUNDA', 'TERÇA', 'QUARTA', 'QUINTA', 'SEXTA', 'SÁBADO'];
 
         for (let i = 0; i < 8; i++) {
             const d = new Date(localToday);
             d.setUTCDate(d.getUTCDate() + i);
             const dateStr = d.toISOString().split('T')[0];
-            let name = i === 0 ? 'HOJE' : i === 1 ? 'AMANHÃƒ' : dayNames[d.getUTCDay()];
+            let name = i === 0 ? 'HOJE' : i === 1 ? 'AMANHÃ' : dayNames[d.getUTCDay()];
             days.push({ date: dateStr, dayName: name, tasks: [] });
         }
 

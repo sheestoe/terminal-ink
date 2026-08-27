@@ -6,7 +6,7 @@
   <!-- Header -->
   <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid black; padding-bottom: 5px; margin-bottom: 10px;">
     <div style="font-size: 30px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
-      <i class="ph ph-calendar-check" style="margin-right: 10px;"></i>PROGRAMAÇÃO DA SEMANA
+      <i class="ph-fill ph-calendar-check" style="margin-right: 10px;"></i>PROGRAMAÇÃO DA SEMANA
     </div>
     <div style="font-size: 18px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
       Todoist
@@ -31,7 +31,7 @@
         <div style="padding: 5px; flex: 1; display: flex; flex-direction: column; gap: 5px;">
           {% if day.tasks.size == 0 %}
             <div style="flex: 1; display: flex; align-items: center; justify-content: center; opacity: 0.3;">
-              <i class="ph ph-coffee" style="font-size: 30px;"></i>
+              <i class="ph-fill ph-coffee" style="font-size: 30px;"></i>
             </div>
           {% else %}
             {% assign task_count = day.tasks | size %}

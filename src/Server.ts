@@ -61,14 +61,27 @@ app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
 app.get('/api/display', async (req: Request, res: Response) => {
     const refresh_rate = await redis.get('config:refresh_rate') || REFRESH_RATE_SECONDS;
     const hash = await getScreenHash();
-    const rotateParam = req.query.rotate ? `&rotate=${req.query.rotate}` : '';
-    const widthParam = req.query.width ? `&width=${req.query.width}` : '&width=800';
-    const heightParam = req.query.height ? `&height=${req.query.height}` : '&height=600';
-    const imageUrl = (process.env['PUBLIC_URL_ORIGIN'] || `http://${SERVER_HOST}:${SERVER_PORT}`) + '/image?secret_key=' + SECRET_KEY + '&format=png' + widthParam + heightParam + rotateParam;
+    
+    const deviceId = req.headers['id'] || 'default';
+    let deviceConfig: any = { width: 800, height: 600, rotate: 90, format: 'png' }; // Default Kindle 8th Gen settings
+    
+    const storedConfig = await redis.get(`config:device:${deviceId}`);
+    if (storedConfig) {
+        deviceConfig = { ...deviceConfig, ...(typeof storedConfig === 'string' ? JSON.parse(storedConfig) : storedConfig) };
+    }
+
+    // Allow URL query params to override device config for testing
+    const rotate = req.query.rotate || deviceConfig.rotate;
+    const width = req.query.width || deviceConfig.width;
+    const height = req.query.height || deviceConfig.height;
+    const format = req.query.format || deviceConfig.format;
+
+    const imageUrl = (process.env['PUBLIC_URL_ORIGIN'] || `http://${SERVER_HOST}:${SERVER_PORT}`) + `/image?secret_key=${SECRET_KEY}&format=${format}&width=${width}&height=${height}&rotate=${rotate}`;
+    
     res.setHeader('Content-Type', 'application/json');
     res.json({
         image_url: imageUrl,
-        filename: 'trmnl-' + hash + '.png',
+        filename: `trmnl-${hash}.${format}`,
         refresh_rate: Number(refresh_rate),
     });
 });

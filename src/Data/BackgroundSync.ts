@@ -217,72 +217,6 @@ export async function syncTrendingData() {
         
         const fetchFeed = async (url: string, name: string) => {
             try {
-                if (url.includes('reddit.com')) {
-                    let rssUrl = url;
-                    try {
-                        let u = new URL(rssUrl);
-                        if (u.pathname.includes('&')) {
-                            u.search = '?' + u.pathname.split('&').slice(1).join('&');
-                            u.pathname = u.pathname.split('&')[0];
-                        }
-                        if (!u.pathname.endsWith('.rss') && !u.pathname.endsWith('.rss/')) {
-                            if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
-                            u.pathname += '.rss';
-                        }
-                        rssUrl = u.toString();
-                    } catch(e) {}
-                    
-                    try {
-                        const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
-                        const data = await r.json();
-                        if (data && data.items && data.items.length > 0) {
-                            return {
-                                name,
-                                items: data.items.slice(0, 4).map((item: any) => ({
-                                    title: item.title,
-                                    date: item.pubDate
-                                }))
-                            };
-                        }
-                    } catch(e) {}
-                    
-                    try {
-                        const res = await fetch(rssUrl, {
-                            headers: {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
-                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                                'Accept-Language': 'en-US,en;q=0.5'
-                            }
-                        });
-                        const xml = await res.text();
-                        const feed = await parser.parseString(xml);
-                        if (feed && feed.items && feed.items.length > 0) {
-                            return {
-                                name,
-                                items: feed.items.slice(0, 4).map((item: any) => ({
-                                    title: item.title,
-                                    date: item.pubDate
-                                }))
-                            };
-                        }
-                    } catch(e) {}
-                    
-                    try {
-                        const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl));
-                        const data = await res.json();
-                        const feed = await parser.parseString(data.contents);
-                        if (feed && feed.items) {
-                            return {
-                                name,
-                                items: feed.items.slice(0, 4).map((item: any) => ({
-                                    title: item.title,
-                                    date: item.pubDate
-                                }))
-                            };
-                        }
-                    } catch(e) {}
-                }
-                
                 const feed = await parser.parseURL(url);
                 return {
                     name,
@@ -307,8 +241,8 @@ export async function syncTrendingData() {
 
         if (feedsList.length === 0) {
             feedsList = [
-                { url: 'https://www.reddit.com/r/brasil/hot.rss', name: 'Reddit r/brasil' },
-                { url: 'https://www.reddit.com/r/technology/hot.rss', name: 'Tech Trending' }
+                { url: 'https://news.ycombinator.com/rss', name: 'HackerNews' },
+                { url: 'https://feeds.arstechnica.com/arstechnica/index', name: 'Ars Technica' }
             ];
         }
 
@@ -336,72 +270,6 @@ export async function syncNewsData() {
         
         const fetchFeed = async (url: string, name: string) => {
             try {
-                if (url.includes('reddit.com')) {
-                    let rssUrl = url;
-                    try {
-                        let u = new URL(rssUrl);
-                        if (u.pathname.includes('&')) {
-                            u.search = '?' + u.pathname.split('&').slice(1).join('&');
-                            u.pathname = u.pathname.split('&')[0];
-                        }
-                        if (!u.pathname.endsWith('.rss') && !u.pathname.endsWith('.rss/')) {
-                            if (u.pathname.endsWith('/')) u.pathname = u.pathname.slice(0, -1);
-                            u.pathname += '.rss';
-                        }
-                        rssUrl = u.toString();
-                    } catch(e) {}
-                    
-                    try {
-                        const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl));
-                        const data = await r.json();
-                        if (data && data.items && data.items.length > 0) {
-                            return {
-                                name,
-                                items: data.items.slice(0, 4).map((item: any) => ({
-                                    title: item.title,
-                                    date: item.pubDate
-                                }))
-                            };
-                        }
-                    } catch(e) {}
-                    
-                    try {
-                        const res = await fetch(rssUrl, {
-                            headers: {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
-                                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                                'Accept-Language': 'en-US,en;q=0.5'
-                            }
-                        });
-                        const xml = await res.text();
-                        const feed = await parser.parseString(xml);
-                        if (feed && feed.items && feed.items.length > 0) {
-                            return {
-                                name,
-                                items: feed.items.slice(0, 4).map((item: any) => ({
-                                    title: item.title,
-                                    date: item.pubDate
-                                }))
-                            };
-                        }
-                    } catch(e) {}
-                    
-                    try {
-                        const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl));
-                        const data = await res.json();
-                        const feed = await parser.parseString(data.contents);
-                        if (feed && feed.items) {
-                            return {
-                                name,
-                                items: feed.items.slice(0, 4).map((item: any) => ({
-                                    title: item.title,
-                                    date: item.pubDate
-                                }))
-                            };
-                        }
-                    } catch(e) {}
-                }
-                
                 const feed = await parser.parseURL(url);
                 return {
                     name,

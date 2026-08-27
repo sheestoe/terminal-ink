@@ -42,11 +42,17 @@ export async function displayRoute(macId: string, headers: IncomingHttpHeaders):
         console.error(`[DISPLAY] [${macId}] Wrong access-token value from device: ${accessToken}`);
         throw new Error('Wrong access-token value from device');
     }
+    const redis = (await import('../Data/Redis.js')).redis;
+    let override = await redis.get('config:override');
+    let nextPlugin = override || await redis.lindex('config:rotation', 0) || 'weather';
+    let screenTime = await redis.get('config:screen_time:' + nextPlugin);
+    let refreshRate = screenTime ? parseInt(screenTime as string) * 60 : REFRESH_RATE_SECONDS;
+
     return {
         status: 0,
         filename: 'custom-screen-' + await getScreenHash(), // screen wouldn't update if data is not changed
         image_url: SCREEN_URL,
-        refresh_rate: REFRESH_RATE_SECONDS,
+        refresh_rate: refreshRate,
         reset_firmware: false,
         update_firmware: false,
         firmware_url: '',

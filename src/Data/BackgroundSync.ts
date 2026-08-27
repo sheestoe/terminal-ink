@@ -203,110 +203,50 @@ export async function syncWeatherData() {
     }
 }
 
-export async function syncTrendingData() {
-    try {
-        const parser = new Parser({
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
-            }
-        });
-        
-        const fetchFeed = async (url: string, name: string) => {
-            try {
-                const feed = await parser.parseURL(url);
-                return {
-                    name,
-                    items: feed.items.slice(0, 4).map(item => ({
-                        title: item.title,
-                        date: item.pubDate
-                    }))
-                };
-            } catch (e) {
-                console.error("Failed to fetch", name, e);
-                return { name, items: [] };
-            }
-        };
-
-        let rawFeeds: any = await redis.get('config:feeds:trending');
-        let feedsList = [];
-        if (typeof rawFeeds === 'string') {
-            try { feedsList = JSON.parse(rawFeeds); } catch (e) {}
-        } else if (Array.isArray(rawFeeds)) {
-            feedsList = rawFeeds;
+export async function syncFeedBoards() {
+    const parser = new Parser({
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
         }
+    });
 
-        if (feedsList.length === 0) {
-            feedsList = [
-                { url: 'https://news.ycombinator.com/rss', name: 'HackerNews' },
-                { url: 'https://feeds.arstechnica.com/arstechnica/index', name: 'Ars Technica' }
-            ];
+    const fetchFeed = async (url: string, name: string) => {
+        try {
+            const feed = await parser.parseURL(url);
+            return {
+                name,
+                items: feed.items.slice(0, 4).map(item => ({
+                    title: item.title,
+                    date: item.pubDate
+                }))
+            };
+        } catch (e) {
+            console.error("Failed to fetch", name, e);
+            return { name, items: [] };
         }
+    };
 
-        const feedPromises = feedsList.map((f: any) => fetchFeed(f.url, f.name));
-        const feedResults = await Promise.all(feedPromises);
-
-        await redis.set('data:trending', JSON.stringify(feedResults));
-        console.log("Trending synced to Redis");
-    } catch (e) {
-        console.error("Trending sync failed", e);
+    let rawBoards: any = await redis.get('config:feed_boards');
+    let boards: any[] = [];
+    if (typeof rawBoards === 'string') {
+        try { boards = JSON.parse(rawBoards); } catch (e) {}
+    } else if (Array.isArray(rawBoards)) {
+        boards = rawBoards;
     }
-}
 
-export async function syncNewsData() {
-    try {
-        const parser = new Parser({
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
-            }
-        });
-        
-        const fetchFeed = async (url: string, name: string) => {
-            try {
-                const feed = await parser.parseURL(url);
-                return {
-                    name,
-                    items: feed.items.slice(0, 4).map(item => ({
-                        title: item.title,
-                        date: item.pubDate
-                    }))
-                };
-            } catch (e) {
-                console.error("Failed to fetch", name, e);
-                return { name, items: [] };
-            }
-        };
-
-        let rawFeeds: any = await redis.get('config:feeds:news');
-        let feedsList = [];
-        if (typeof rawFeeds === 'string') {
-            try { feedsList = JSON.parse(rawFeeds); } catch (e) {}
-        } else if (Array.isArray(rawFeeds)) {
-            feedsList = rawFeeds;
+    for (const board of boards) {
+        try {
+            const feeds: any[] = Array.isArray(board.feeds) ? board.feeds : [];
+            const results = await Promise.all(feeds.map((f: any) => fetchFeed(f.url, f.name)));
+            await redis.set(`data:feed_board:${board.id}`, JSON.stringify(results));
+            console.log(`Feed board synced: ${board.id} (${board.name})`);
+        } catch (e) {
+            console.error(`Feed board sync failed: ${board.id}`, e);
         }
-
-        if (feedsList.length === 0) {
-            feedsList = [
-                { url: 'https://g1.globo.com/rss/g1/', name: 'G1 Globo' },
-                { url: 'https://feeds.bbci.co.uk/portuguese/rss.xml', name: 'BBC Brasil' },
-                { url: 'https://www.cnnbrasil.com.br/feed/', name: 'CNN Brasil' }
-            ];
-        }
-
-        const feedPromises = feedsList.map((f: any) => fetchFeed(f.url, f.name));
-        const feedResults = await Promise.all(feedPromises);
-
-        await redis.set('data:news', JSON.stringify(feedResults));
-        console.log("News synced to Redis");
-    } catch (e) {
-        console.error("News sync failed", e);
     }
 }
 
@@ -383,8 +323,6 @@ export async function checkAndSync() {
 
         // Intervals (in minutes)
         const iWeather = parseInt(await redis.get('config:interval:weather') as string) || 60;
-        const iNews = parseInt(await redis.get('config:interval:news') as string) || 120;
-        const iTrending = parseInt(await redis.get('config:interval:trending') as string) || 120;
         const iTodoist = parseInt(await redis.get('config:interval:todoist') as string) || 15;
         const iCalendar = parseInt(await redis.get('config:interval:agenda') as string) || 120;
 
@@ -395,18 +333,40 @@ export async function checkAndSync() {
             await redis.set('expire:weather', (now + iWeather * 60 * 1000).toString());
         }
 
-        // 2. NEWS
-        const newsExpire = await redis.get('expire:news');
-        if (!newsExpire || now > parseInt(newsExpire as string)) {
-            await syncNewsData();
-            await redis.set('expire:news', (now + iNews * 60 * 1000).toString());
+        // 2. FEED BOARDS — each board has its own interval and expire key
+        let rawBoards: any = await redis.get('config:feed_boards');
+        let boards: any[] = [];
+        if (typeof rawBoards === 'string') {
+            try { boards = JSON.parse(rawBoards); } catch (e) {}
+        } else if (Array.isArray(rawBoards)) {
+            boards = rawBoards;
         }
-        
-        // 2b. TRENDING
-        const trendingExpire = await redis.get('expire:trending');
-        if (!trendingExpire || now > parseInt(trendingExpire as string)) {
-            await syncTrendingData();
-            await redis.set('expire:trending', (now + iTrending * 60 * 1000).toString());
+
+        for (const board of boards) {
+            const intervalMin = parseInt(board.interval) || 120;
+            const expireKey = `expire:feed_board:${board.id}`;
+            const boardExpire = await redis.get(expireKey);
+            if (!boardExpire || now > parseInt(boardExpire as string)) {
+                // Sync just this board
+                const parser = new Parser({
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/117.0',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    }
+                });
+                const feeds: any[] = Array.isArray(board.feeds) ? board.feeds : [];
+                const results = await Promise.all(feeds.map(async (f: any) => {
+                    try {
+                        const feed = await parser.parseURL(f.url);
+                        return { name: f.name, items: feed.items.slice(0, 4).map(i => ({ title: i.title, date: i.pubDate })) };
+                    } catch (e) {
+                        return { name: f.name, items: [] };
+                    }
+                }));
+                await redis.set(`data:feed_board:${board.id}`, JSON.stringify(results));
+                await redis.set(expireKey, (now + intervalMin * 60 * 1000).toString());
+                console.log(`Synced feed board: ${board.id}`);
+            }
         }
 
         // 3. TODOIST

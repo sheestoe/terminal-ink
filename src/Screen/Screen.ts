@@ -30,22 +30,13 @@ export async function buildScreen(format: 'bmp' | 'png' = 'bmp', rotation: numbe
                 } catch(e) { console.error('Weather template failed, skipping', e); }
             }
         }
-        else if (currentPlugin === 'news') {
-            const data = await redis.get('data:news');
+        else if (currentPlugin.startsWith('feed')) {
+            const data = await redis.get(`data:feed_board:${currentPlugin}`);
             if (data && (data as any[]).length > 0) {
                 try {
                     html = await buildLiquid('News', { news: data, screen_height: height } as any);
                     break;
-                } catch(e) { console.error('News template failed, skipping', e); }
-            }
-        }
-        else if (currentPlugin === 'trending') {
-            const data = await redis.get('data:trending');
-            if (data && (data as any[]).length > 0) {
-                try {
-                    html = await buildLiquid('Trending', { news: data, screen_height: height } as any);
-                    break;
-                } catch(e) { console.error('Trending template failed, skipping', e); }
+                } catch(e) { console.error(`Feed board template failed (${currentPlugin}), skipping`, e); }
             }
         }
         else if (currentPlugin === 'todoist') {

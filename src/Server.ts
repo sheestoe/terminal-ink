@@ -35,44 +35,67 @@ app.get('/api/web/config', async (req: Request, res: Response) => {
     
     const intervals = {
         weather: await redis.get('config:interval:weather') || 60,
-        news: await redis.get('config:interval:news') || 120,
-        trending: await redis.get('config:interval:trending') || 120,
         todoist: await redis.get('config:interval:todoist') || 15,
         agenda: await redis.get('config:interval:agenda') || 120,
     };
     
     const screen_times = {
         weather: await redis.get('config:screen_time:weather') || 15,
-        news: await redis.get('config:screen_time:news') || 15,
-        trending: await redis.get('config:screen_time:trending') || 15,
         todoist: await redis.get('config:screen_time:todoist') || 15,
         agenda: await redis.get('config:screen_time:agenda') || 15,
     };
-    
-    const rawFeeds = await redis.get('config:feeds:news');
-    let news_feeds = typeof rawFeeds === 'string' ? JSON.parse(rawFeeds) : rawFeeds;
-    if (!news_feeds || !Array.isArray(news_feeds)) {
-        news_feeds = [
-            { url: 'https://g1.globo.com/rss/g1/', name: 'G1 Globo' },
-            { url: 'https://www.cnnbrasil.com.br/feed/', name: 'CNN Brasil' },
-        ];
+
+    // Load feed boards — migrate from old news/trending keys if none exist yet
+    let rawBoards: any = await redis.get('config:feed_boards');
+    let feed_boards: any[] = [];
+    if (typeof rawBoards === 'string') {
+        try { feed_boards = JSON.parse(rawBoards); } catch (e) {}
+    } else if (Array.isArray(rawBoards)) {
+        feed_boards = rawBoards;
     }
 
-    const rawTrending = await redis.get('config:feeds:trending');
-    let trending_feeds = typeof rawTrending === 'string' ? JSON.parse(rawTrending) : rawTrending;
-    if (!trending_feeds || !Array.isArray(trending_feeds)) {
-        trending_feeds = [
-            { url: 'https://www.reddit.com/r/brasil/hot.rss', name: 'Reddit r/brasil' },
-            { url: 'https://www.reddit.com/r/technology/hot.rss', name: 'Tech Trending' }
+    if (feed_boards.length === 0) {
+        // Migrate old news feeds
+        const rawNews: any = await redis.get('config:feeds:news');
+        let oldNews = typeof rawNews === 'string' ? JSON.parse(rawNews) : rawNews;
+        if (!Array.isArray(oldNews) || oldNews.length === 0) {
+            oldNews = [
+                { url: 'https://g1.globo.com/rss/g1/', name: 'G1 Globo' },
+                { url: 'https://www.cnnbrasil.com.br/feed/', name: 'CNN Brasil' },
+            ];
+        }
+        // Migrate old trending feeds
+        const rawTrending: any = await redis.get('config:feeds:trending');
+        let oldTrending = typeof rawTrending === 'string' ? JSON.parse(rawTrending) : rawTrending;
+        if (!Array.isArray(oldTrending) || oldTrending.length === 0) {
+            oldTrending = [
+                { url: 'https://news.ycombinator.com/rss', name: 'HackerNews' },
+                { url: 'https://feeds.arstechnica.com/arstechnica/index', name: 'Ars Technica' },
+            ];
+        }
+        feed_boards = [
+            { id: 'feed1', name: 'Notícias', feeds: oldNews, interval: 120, screen_time: 15 },
+            { id: 'feed2', name: 'Trending', feeds: oldTrending, interval: 120, screen_time: 15 },
         ];
+        // Persist migrated boards
+        await redis.set('config:feed_boards', JSON.stringify(feed_boards));
+        // Update rotation: replace news/trending with feed1/feed2 if present
+        const currentRotation = await redis.lrange('config:rotation', 0, -1) || [];
+        const newRotation = currentRotation
+            .filter((p: string) => p !== 'news' && p !== 'trending')
+            .concat(currentRotation.includes('news') || currentRotation.includes('trending')
+                ? ['feed1', 'feed2'] : []);
+        const deduplicated = [...new Set(newRotation)];
+        await redis.del('config:rotation');
+        if (deduplicated.length > 0) await redis.rpush('config:rotation', ...deduplicated);
     }
     
-    res.json({ rotation, intervals, news_feeds, trending_feeds });
+    res.json({ rotation: await redis.lrange('config:rotation', 0, -1) || [], intervals, screen_times, feed_boards });
 });
 
 app.post('/api/web/config', async (req: Request, res: Response) => {
     if (!isSecretKeyValid(req, res)) return;
-    const { rotation, intervals, news_feeds, trending_feeds } = req.body;
+    const { rotation, intervals, screen_times, feed_boards } = req.body;
     
     if (Array.isArray(rotation)) {
         await redis.del('config:rotation');
@@ -83,26 +106,22 @@ app.post('/api/web/config', async (req: Request, res: Response) => {
     
     if (intervals) {
         if (intervals.weather) await redis.set('config:interval:weather', intervals.weather);
-        if (intervals.news) await redis.set('config:interval:news', intervals.news);
-        if (intervals.trending) await redis.set('config:interval:trending', intervals.trending);
         if (intervals.todoist) await redis.set('config:interval:todoist', intervals.todoist);
         if (intervals.agenda) await redis.set('config:interval:agenda', intervals.agenda);
     }
     
-    const { screen_times } = req.body;
     if (screen_times) {
         if (screen_times.weather) await redis.set('config:screen_time:weather', screen_times.weather);
-        if (screen_times.news) await redis.set('config:screen_time:news', screen_times.news);
-        if (screen_times.trending) await redis.set('config:screen_time:trending', screen_times.trending);
         if (screen_times.todoist) await redis.set('config:screen_time:todoist', screen_times.todoist);
         if (screen_times.agenda) await redis.set('config:screen_time:agenda', screen_times.agenda);
     }
     
-    if (Array.isArray(news_feeds)) {
-        await redis.set('config:feeds:news', JSON.stringify(news_feeds));
-    }
-    if (Array.isArray(trending_feeds)) {
-        await redis.set('config:feeds:trending', JSON.stringify(trending_feeds));
+    if (Array.isArray(feed_boards)) {
+        await redis.set('config:feed_boards', JSON.stringify(feed_boards));
+        // Persist per-board screen_time for Display.ts
+        for (const board of feed_boards) {
+            if (board.screen_time) await redis.set(`config:screen_time:${board.id}`, board.screen_time);
+        }
     }
     
     res.json({ success: true });
@@ -114,15 +133,24 @@ app.post('/api/web/sync-now', async (req: Request, res: Response) => {
     const { plugin } = req.body;
     
     if (plugin) {
-        // The calendar plugin is named "agenda" in the UI array but "calendar" in the expire keys
-        const expireKey = plugin === 'agenda' ? 'calendar' : plugin;
-        await redis.del(`expire:${expireKey}`);
+        if (plugin === 'agenda') {
+            await redis.del('expire:calendar');
+        } else if (plugin.startsWith('feed')) {
+            await redis.del(`expire:feed_board:${plugin}`);
+        } else {
+            await redis.del(`expire:${plugin}`);
+        }
     } else {
+        // Clear all expiries including all feed boards
         await redis.del('expire:weather');
-        await redis.del('expire:news');
-        await redis.del('expire:trending');
         await redis.del('expire:todoist');
         await redis.del('expire:calendar');
+        const rawBoards: any = await redis.get('config:feed_boards');
+        let boards: any[] = [];
+        if (typeof rawBoards === 'string') { try { boards = JSON.parse(rawBoards); } catch (e) {} }
+        for (const board of boards) {
+            await redis.del(`expire:feed_board:${board.id}`);
+        }
     }
     
     // trigger check in background so we don't block response

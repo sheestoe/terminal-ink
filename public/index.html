@@ -136,38 +136,12 @@
             <div id="plugin-list"></div>
         </div>
         <div class="section">
-            <div class="section-title">
-                <i class="ph-fill ph-rss text-gray-500"></i>
-                Feeds de Notícias <span id="news-count" style="font-size:0.75rem; color:#6b7280; font-weight:400;">(0/3)</span>
+            <div class="section-title" style="justify-content: space-between;">
+                <span><i class="ph-fill ph-rss text-gray-500"></i> Telas de Feed</span>
+                <button id="btn-add-board" class="btn" style="background:#e5e7eb;color:#374151;padding:6px 12px;font-size:0.85rem;">＋ Nova Tela</button>
             </div>
-            <p class="section-desc">Até 3 feeds RSS de jornais. Clique em uma sugestão ou adicione manualmente.</p>
-            <div class="feed-suggestions" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-                <button class="btn-suggest" data-list="news" data-name="G1 Globo" data-url="https://g1.globo.com/rss/g1/">G1 Globo</button>
-                <button class="btn-suggest" data-list="news" data-name="BBC Brasil" data-url="https://feeds.bbci.co.uk/portuguese/rss.xml">BBC Brasil</button>
-                <button class="btn-suggest" data-list="news" data-name="CNN Brasil" data-url="https://www.cnnbrasil.com.br/feed/">CNN Brasil</button>
-                <button class="btn-suggest" data-list="news" data-name="Folha" data-url="https://feeds.folha.uol.com.br/emcimadahora/rss091.xml">Folha</button>
-                <button class="btn-suggest" data-list="news" data-name="UOL" data-url="https://rss.uol.com.br/feed/noticias.xml">UOL</button>
-                <button class="btn-suggest" data-list="news" data-name="Agência Brasil" data-url="https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml">Agência Brasil</button>
-            </div>
-            <div id="feeds-list"></div>
-            <button id="btn-add-feed" class="btn" style="background: #e5e7eb; color: #374151; width: 100%; margin-top: 12px;">+ Adicionar Feed</button>
-        </div>
-        <div class="section">
-            <div class="section-title">
-                <i class="ph-fill ph-trend-up text-gray-500"></i>
-                Feeds de Trending <span id="trending-count" style="font-size:0.75rem; color:#6b7280; font-weight:400;">(0/3)</span>
-            </div>
-            <p class="section-desc">Até 3 feeds RSS de tendências. Clique em uma sugestão ou adicione manualmente.</p>
-            <div class="feed-suggestions" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-                <button class="btn-suggest" data-list="trending" data-name="HackerNews" data-url="https://news.ycombinator.com/rss">HackerNews</button>
-                <button class="btn-suggest" data-list="trending" data-name="Ars Technica" data-url="https://feeds.arstechnica.com/arstechnica/index">Ars Technica</button>
-                <button class="btn-suggest" data-list="trending" data-name="The Verge" data-url="https://www.theverge.com/rss/index.xml">The Verge</button>
-                <button class="btn-suggest" data-list="trending" data-name="TechCrunch" data-url="https://techcrunch.com/feed/">TechCrunch</button>
-                <button class="btn-suggest" data-list="trending" data-name="Wired" data-url="https://www.wired.com/feed/rss">Wired</button>
-                <button class="btn-suggest" data-list="trending" data-name="Gizmodo BR" data-url="https://gizmodo.uol.com.br/feed/">Gizmodo BR</button>
-            </div>
-            <div id="trending-list"></div>
-            <button id="btn-add-trending" class="btn" style="background: #e5e7eb; color: #374151; width: 100%; margin-top: 12px;">+ Adicionar Feed de Trending</button>
+            <p class="section-desc">Crie quantas telas de feed quiser. Cada uma aparece na rotação quando ativada nos Plugins acima.</p>
+            <div id="boards-list"></div>
         </div>
     </main>
 
@@ -204,34 +178,47 @@
         const API_URL = "/api/web/config";
         const AVAILABLE_PLUGINS = [
             { id: "weather", name: "Clima", icon: "ph-cloud-sun" },
-            { id: "news", name: "Notícias (Jornais)", icon: "ph-newspaper" },
-            { id: "trending", name: "Trending & Redes", icon: "ph-trend-up" },
             { id: "todoist", name: "Todoist", icon: "ph-check-square-offset" },
             { id: "agenda", name: "Agenda", icon: "ph-calendar-check" }
         ];
 
-        let state = { rotation: [], screen_times: {}, screen_times: {
-                weather: document.getElementById('screen-weather') ? document.getElementById('screen-weather').value : 15,
-                news: document.getElementById('screen-news') ? document.getElementById('screen-news').value : 15,
-                trending: document.getElementById('screen-trending') ? document.getElementById('screen-trending').value : 15,
-                todoist: document.getElementById('screen-todoist') ? document.getElementById('screen-todoist').value : 15,
-                agenda: document.getElementById('screen-agenda') ? document.getElementById('screen-agenda').value : 15,
-            },
-            intervals: {}, news_feeds: [], trending_feeds: [] };
+        let state = { rotation: [], screen_times: {}, intervals: {}, feed_boards: [] };
         const els = {
             loader: document.getElementById("loader"),
             btnSave: document.getElementById("btn-save"),
             pluginList: document.getElementById("plugin-list"),
-            feedsList: document.getElementById("feeds-list"),
-            btnAddFeed: document.getElementById("btn-add-feed"),
-            trendingList: document.getElementById("trending-list"),
-            btnAddTrending: document.getElementById("btn-add-trending")
+            boardsList: document.getElementById("boards-list"),
+            btnAddBoard: document.getElementById("btn-add-board"),
         };
+
+        const FEED_SUGGESTIONS = [
+            { name: "G1 Globo",       url: "https://g1.globo.com/rss/g1/" },
+            { name: "BBC Brasil",     url: "https://feeds.bbci.co.uk/portuguese/rss.xml" },
+            { name: "CNN Brasil",     url: "https://www.cnnbrasil.com.br/feed/" },
+            { name: "Folha",          url: "https://feeds.folha.uol.com.br/emcimadahora/rss091.xml" },
+            { name: "UOL",            url: "https://rss.uol.com.br/feed/noticias.xml" },
+            { name: "Agência Brasil", url: "https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml" },
+            { name: "HackerNews",     url: "https://news.ycombinator.com/rss" },
+            { name: "Ars Technica",   url: "https://feeds.arstechnica.com/arstechnica/index" },
+            { name: "The Verge",      url: "https://www.theverge.com/rss/index.xml" },
+            { name: "TechCrunch",     url: "https://techcrunch.com/feed/" },
+            { name: "Wired",          url: "https://www.wired.com/feed/rss" },
+            { name: "Gizmodo BR",     url: "https://gizmodo.uol.com.br/feed/" },
+        ];
+
+        let boardCounter = 0;
+        function nextBoardId() {
+            // Find highest existing feed number and increment
+            const existing = (state.feed_boards || []).map(b => parseInt(b.id.replace('feed',''))).filter(n => !isNaN(n));
+            const max = existing.length > 0 ? Math.max(...existing) : 0;
+            return `feed${max + 1}`;
+        }
 
         async function init() {
             try {
                 const res = await fetch(API_URL + "?secret_key=1452fc0842aa109f28b56fd24edd918c");
                 state = await res.json();
+                if (!state.feed_boards) state.feed_boards = [];
                 render();
             } catch (err) {
                 alert("Erro ao conectar");
@@ -240,116 +227,123 @@
             }
         }
 
-        const MAX_FEEDS = 3;
-
-        function updateFeedUI(list, listEl, addBtn, countEl) {
-            const n = (list || []).length;
-            countEl.textContent = `(${n}/${MAX_FEEDS})`;
-            addBtn.disabled = n >= MAX_FEEDS;
-            // Update suggestion chip states
-            const addedUrls = new Set((list || []).map(f => f.url));
-            document.querySelectorAll(`.btn-suggest[data-list="${listEl.id === 'feeds-list' ? 'news' : 'trending'}"]`).forEach(btn => {
-                btn.classList.toggle('already-added', addedUrls.has(btn.dataset.url));
-            });
-        }
-
-        function renderFeeds() {
-            els.feedsList.innerHTML = "";
-            (state.news_feeds || []).forEach((feed, index) => {
-                const div = document.createElement("div");
-                div.className = "feed-item";
-                div.innerHTML = `
+        function renderBoardFeeds(board, boardEl) {
+            const feedList = boardEl.querySelector('.board-feed-list');
+            feedList.innerHTML = '';
+            (board.feeds || []).forEach((feed, fi) => {
+                const row = document.createElement('div');
+                row.className = 'feed-item';
+                row.innerHTML = `
                     <div class="feed-inputs">
-                        <input type="text" class="feed-input feed-name" placeholder="Nome (ex: G1 Globo)" value="${feed.name || ''}">
-                        <input type="text" class="feed-input feed-url" placeholder="URL do RSS" value="${feed.url || ''}">
+                        <input type="text" class="feed-input" placeholder="Nome" value="${feed.name || ''}">
+                        <input type="text" class="feed-input" placeholder="URL do RSS" value="${feed.url || ''}">
                     </div>
                     <button class="btn-delete"><i class="ph ph-trash"></i></button>
                 `;
-                div.querySelector(".feed-name").addEventListener("input", (e) => {
-                    state.news_feeds[index].name = e.target.value;
+                row.querySelectorAll('.feed-input')[0].addEventListener('input', e => { board.feeds[fi].name = e.target.value; showSaveButton(); });
+                row.querySelectorAll('.feed-input')[1].addEventListener('input', e => { board.feeds[fi].url = e.target.value; showSaveButton(); });
+                row.querySelector('.btn-delete').addEventListener('click', () => {
+                    board.feeds.splice(fi, 1);
+                    renderBoardFeeds(board, boardEl);
                     showSaveButton();
                 });
-                div.querySelector(".feed-url").addEventListener("input", (e) => {
-                    state.news_feeds[index].url = e.target.value;
-                    updateFeedUI(state.news_feeds, els.feedsList, els.btnAddFeed, document.getElementById("news-count"));
-                    showSaveButton();
-                });
-                div.querySelector(".btn-delete").addEventListener("click", () => {
-                    state.news_feeds.splice(index, 1);
-                    renderFeeds();
-                    showSaveButton();
-                });
-                els.feedsList.appendChild(div);
+                feedList.appendChild(row);
             });
-            updateFeedUI(state.news_feeds, els.feedsList, els.btnAddFeed, document.getElementById("news-count"));
+
+            // Suggestion chips — only show ones not yet added
+            const addedUrls = new Set((board.feeds || []).map(f => f.url));
+            const chipsEl = boardEl.querySelector('.board-suggestions');
+            chipsEl.innerHTML = '';
+            FEED_SUGGESTIONS.filter(s => !addedUrls.has(s.url)).forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-suggest';
+                btn.textContent = s.name;
+                btn.addEventListener('click', () => {
+                    if (!board.feeds) board.feeds = [];
+                    board.feeds.push({ name: s.name, url: s.url });
+                    renderBoardFeeds(board, boardEl);
+                    showSaveButton();
+                });
+                chipsEl.appendChild(btn);
+            });
         }
 
-        els.btnAddFeed.addEventListener("click", () => {
-            if (!state.news_feeds) state.news_feeds = [];
-            if (state.news_feeds.length >= MAX_FEEDS) return;
-            state.news_feeds.push({ name: "", url: "" });
-            renderFeeds();
-            showSaveButton();
-        });
-
-        function renderTrending() {
-            els.trendingList.innerHTML = "";
-            (state.trending_feeds || []).forEach((feed, index) => {
-                const div = document.createElement("div");
-                div.className = "feed-item";
-                div.innerHTML = `
-                    <div class="feed-inputs">
-                        <input type="text" class="feed-input feed-name" placeholder="Nome (ex: HackerNews)" value="${feed.name || ''}">
-                        <input type="text" class="feed-input feed-url" placeholder="URL do RSS" value="${feed.url || ''}">
+        function renderBoards() {
+            els.boardsList.innerHTML = '';
+            (state.feed_boards || []).forEach((board, bi) => {
+                const isActive = state.rotation.includes(board.id);
+                const card = document.createElement('div');
+                card.style.cssText = 'border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;background:#fafafa;';
+                card.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <label class="toggle"><input type="checkbox" class="board-toggle" ${isActive ? 'checked' : ''}><span class="slider"></span></label>
+                        <input type="text" class="feed-input board-name" placeholder="Nome da tela (ex: Tech)" value="${board.name || ''}" style="flex:1;font-weight:600;">
+                        <span style="font-size:0.75rem;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:20px;">${board.id}</span>
+                        <button class="btn-delete board-delete" title="Remover tela"><i class="ph ph-trash"></i></button>
                     </div>
-                    <button class="btn-delete"><i class="ph ph-trash"></i></button>
+                    <div style="display:flex;gap:10px;margin-bottom:10px;">
+                        <label style="font-size:0.8rem;color:#6b7280;">API (min)<br>
+                            <input type="number" class="feed-input board-interval" value="${board.interval || 120}" style="width:70px;margin-top:4px;">
+                        </label>
+                        <label style="font-size:0.8rem;color:#6b7280;">Tela (min)<br>
+                            <input type="number" class="feed-input board-screen" value="${board.screen_time || 15}" style="width:70px;margin-top:4px;">
+                        </label>
+                        <div style="flex:1;text-align:right;align-self:flex-end;">
+                            <button class="btn btn-sync-single board-sync" title="Forçar sync"><i class="ph ph-arrows-clockwise"></i></button>
+                        </div>
+                    </div>
+                    <div class="board-suggestions" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;"></div>
+                    <div class="board-feed-list"></div>
+                    <button class="btn board-add-feed" style="background:#e5e7eb;color:#374151;width:100%;margin-top:8px;">+ Adicionar Feed</button>
                 `;
-                div.querySelector(".feed-name").addEventListener("input", (e) => {
-                    state.trending_feeds[index].name = e.target.value;
+
+                card.querySelector('.board-toggle').addEventListener('change', e => {
+                    if (e.target.checked) { if (!state.rotation.includes(board.id)) state.rotation.push(board.id); }
+                    else { state.rotation = state.rotation.filter(id => id !== board.id); }
                     showSaveButton();
                 });
-                div.querySelector(".feed-url").addEventListener("input", (e) => {
-                    state.trending_feeds[index].url = e.target.value;
-                    updateFeedUI(state.trending_feeds, els.trendingList, els.btnAddTrending, document.getElementById("trending-count"));
+                card.querySelector('.board-name').addEventListener('input', e => { board.name = e.target.value; showSaveButton(); });
+                card.querySelector('.board-interval').addEventListener('input', e => { board.interval = parseInt(e.target.value) || 120; showSaveButton(); });
+                card.querySelector('.board-screen').addEventListener('input', e => { board.screen_time = parseInt(e.target.value) || 15; showSaveButton(); });
+                card.querySelector('.board-delete').addEventListener('click', () => {
+                    state.feed_boards.splice(bi, 1);
+                    state.rotation = state.rotation.filter(id => id !== board.id);
+                    renderBoards();
                     showSaveButton();
                 });
-                div.querySelector(".btn-delete").addEventListener("click", () => {
-                    state.trending_feeds.splice(index, 1);
-                    renderTrending();
+                card.querySelector('.board-add-feed').addEventListener('click', () => {
+                    if (!board.feeds) board.feeds = [];
+                    board.feeds.push({ name: '', url: '' });
+                    renderBoardFeeds(board, card);
                     showSaveButton();
                 });
-                els.trendingList.appendChild(div);
+                card.querySelector('.board-sync').addEventListener('click', async (e) => {
+                    const btn = e.currentTarget;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="ph ph-spinner spinner" style="font-size:1rem;margin:0;"></i>';
+                    await fetch('/api/web/sync-now?secret_key=1452fc0842aa109f28b56fd24edd918c', {
+                        method: 'POST', headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({ plugin: board.id })
+                    });
+                    setTimeout(() => { btn.disabled = false; btn.innerHTML = '<i class="ph ph-arrows-clockwise"></i>'; }, 2000);
+                });
+
+                renderBoardFeeds(board, card);
+                els.boardsList.appendChild(card);
             });
-            updateFeedUI(state.trending_feeds, els.trendingList, els.btnAddTrending, document.getElementById("trending-count"));
         }
 
-        els.btnAddTrending.addEventListener("click", () => {
-            if (!state.trending_feeds) state.trending_feeds = [];
-            if (state.trending_feeds.length >= MAX_FEEDS) return;
-            state.trending_feeds.push({ name: "", url: "" });
-            renderTrending();
+        els.btnAddBoard.addEventListener('click', () => {
+            if (!state.feed_boards) state.feed_boards = [];
+            const id = nextBoardId();
+            state.feed_boards.push({ id, name: '', feeds: [], interval: 120, screen_time: 15 });
+            renderBoards();
             showSaveButton();
-        });
-
-        // Suggestion chips
-        document.querySelectorAll(".btn-suggest").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const listKey = btn.dataset.list === "news" ? "news_feeds" : "trending_feeds";
-                if (!state[listKey]) state[listKey] = [];
-                if (state[listKey].length >= MAX_FEEDS) return;
-                // Don't add duplicates
-                if (state[listKey].some(f => f.url === btn.dataset.url)) return;
-                state[listKey].push({ name: btn.dataset.name, url: btn.dataset.url });
-                if (btn.dataset.list === "news") renderFeeds();
-                else renderTrending();
-                showSaveButton();
-            });
         });
 
         function render() {
             els.pluginList.innerHTML = "";
-            renderFeeds();
-            renderTrending();
+            renderBoards();
             AVAILABLE_PLUGINS.forEach(plugin => {
                 const tpl = document.getElementById("tpl-plugin").content.cloneNode(true);
                 const isActive = state.rotation.includes(plugin.id);

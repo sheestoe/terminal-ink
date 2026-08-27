@@ -41,6 +41,14 @@ app.get('/api/web/config', async (req: Request, res: Response) => {
         agenda: await redis.get('config:interval:agenda') || 120,
     };
     
+    const screen_times = {
+        weather: await redis.get('config:screen_time:weather') || 15,
+        news: await redis.get('config:screen_time:news') || 15,
+        trending: await redis.get('config:screen_time:trending') || 15,
+        todoist: await redis.get('config:screen_time:todoist') || 15,
+        agenda: await redis.get('config:screen_time:agenda') || 15,
+    };
+    
     const rawFeeds = await redis.get('config:feeds:news');
     let news_feeds = typeof rawFeeds === 'string' ? JSON.parse(rawFeeds) : rawFeeds;
     if (!news_feeds || !Array.isArray(news_feeds)) {
@@ -79,6 +87,15 @@ app.post('/api/web/config', async (req: Request, res: Response) => {
         if (intervals.trending) await redis.set('config:interval:trending', intervals.trending);
         if (intervals.todoist) await redis.set('config:interval:todoist', intervals.todoist);
         if (intervals.agenda) await redis.set('config:interval:agenda', intervals.agenda);
+    }
+    
+    const { screen_times } = req.body;
+    if (screen_times) {
+        if (screen_times.weather) await redis.set('config:screen_time:weather', screen_times.weather);
+        if (screen_times.news) await redis.set('config:screen_time:news', screen_times.news);
+        if (screen_times.trending) await redis.set('config:screen_time:trending', screen_times.trending);
+        if (screen_times.todoist) await redis.set('config:screen_time:todoist', screen_times.todoist);
+        if (screen_times.agenda) await redis.set('config:screen_time:agenda', screen_times.agenda);
     }
     
     if (Array.isArray(news_feeds)) {

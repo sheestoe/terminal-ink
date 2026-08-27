@@ -182,7 +182,14 @@
             { id: "agenda", name: "Agenda", icon: "ph-calendar-check" }
         ];
 
-        let state = { rotation: [], intervals: {}, news_feeds: [], trending_feeds: [] };
+        let state = { rotation: [], screen_times: {
+                weather: document.getElementById("screen-weather").value,
+                news: document.getElementById("screen-news").value,
+                trending: document.getElementById("screen-trending").value,
+                todoist: document.getElementById("screen-todoist").value,
+                agenda: document.getElementById("screen-agenda").value,
+            },
+            intervals: {}, news_feeds: [], trending_feeds: [] };
         const els = {
             loader: document.getElementById("loader"),
             btnSave: document.getElementById("btn-save"),

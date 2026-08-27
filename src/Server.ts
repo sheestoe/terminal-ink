@@ -11,7 +11,7 @@ import {buildScreen, checkImageUrl, getScreenHash} from "Screen/Screen.js";
 import {BYOSRoutes} from "BYOS/BYOSRoutes.js";
 import {ROUTE_IMAGE, ROUTE_PLUGIN_REDIRECT} from "Routes.js";
 import {initPuppeteer} from "./Screen/RenderHTML.js";
-import {startBackgroundSync} from "./Data/BackgroundSync.js";
+import {startBackgroundSync, checkAndSync} from "./Data/BackgroundSync.js";
 import {redis} from "./Data/Redis.js";
 import { google } from 'googleapis';
 
@@ -87,6 +87,21 @@ app.post('/api/web/config', async (req: Request, res: Response) => {
     if (Array.isArray(trending_feeds)) {
         await redis.set('config:feeds:trending', JSON.stringify(trending_feeds));
     }
+    
+    res.json({ success: true });
+});
+
+app.post('/api/web/sync-now', async (req: Request, res: Response) => {
+    if (!isSecretKeyValid(req, res)) return;
+    
+    await redis.del('expire:weather');
+    await redis.del('expire:news');
+    await redis.del('expire:trending');
+    await redis.del('expire:todoist');
+    await redis.del('expire:calendar');
+    
+    // trigger check in background so we don't block response
+    checkAndSync();
     
     res.json({ success: true });
 });

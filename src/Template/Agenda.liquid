@@ -1,66 +1,45 @@
-<head>
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-</head>
-<div style="background-color: white; width: 800px; height: 480px; padding: 15px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
+﻿<style>
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+body { margin: 0; padding: 0; overflow: hidden; background: white; }
+</style>
+<div lang="pt-BR" style="background-color: white; width: 800px; height: 480px; padding: 12px 24px; box-sizing: border-box; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: black; display: flex; flex-direction: column;">
   
   <!-- Header -->
-  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid black; padding-bottom: 5px; margin-bottom: 10px;">
-    <div style="font-size: 30px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
-      <i class="ph-fill ph-calendar-check" style="margin-right: 10px;"></i>PROGRAMAÇÃO DA SEMANA
-    </div>
-    <div style="font-size: 18px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
-      Todoist
-    </div>
+  <div style="font-size: 24px; font-weight: 700; text-transform: uppercase; border-bottom: 4px solid black; padding-bottom: 6px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; flex-shrink: 0;">
+    <span style="letter-spacing: 1.5px;">Agenda</span>
+    <span style="font-size: 14px; font-weight: 700; color: #666; letter-spacing: 1px;">Todoist</span>
   </div>
 
-  <!-- Agenda Planner Grid -->
-  <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; flex: 1;">
-    
-    {% for day in agenda limit: 8 %}
-      <!-- Day Block -->
-      <div style="background: white; border: 3px solid black; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 4px 4px 0px black;">
+  <!-- 2x2 Grid for 4 Days -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 16px 32px; flex: 1; min-height: 0;">
+    {% for day in agenda limit: 4 %}
+      <div style="display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
         
-        <!-- Day Header -->
-        <div style="background: {% if day.dayName == 'HOJE' %}black{% else %}#ddd{% endif %}; color: {% if day.dayName == 'HOJE' %}white{% else %}black{% endif %}; padding: 5px; text-align: center; border-bottom: 3px solid black;">
-          <div style="font-size: 16px; font-weight: 900; text-transform: uppercase;">{{ day.dayName }}</div>
+        <!-- Day Title -->
+        <div style="font-size: 20px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: baseline; gap: 8px; border-bottom: 2px solid #ccc; padding-bottom: 4px; flex-shrink: 0;">
+          <span style="color: #000;">{{ day.dayName }}</span>
           {% assign parts = day.date | split: "-" %}
-          <div style="font-size: 12px; font-weight: bold;">{{ parts[2] }}/{{ parts[1] }}</div>
+          <span style="font-size: 16px; color: #666;">{{ parts[2] }}/{{ parts[1] }}</span>
         </div>
-        
-        <!-- Day Tasks -->
-        <div style="padding: 5px; flex: 1; display: flex; flex-direction: column; gap: 5px;">
-          {% if day.tasks.size == 0 %}
-            <div style="flex: 1; display: flex; align-items: center; justify-content: center; opacity: 0.3;">
-              <i class="ph-fill ph-coffee" style="font-size: 30px;"></i>
-            </div>
-          {% else %}
-            {% assign task_count = day.tasks | size %}
-            {% if screen_height and screen_height > 500 %}
-              {% assign limit_items = 8 %}
-              {% if task_count > 6 %}
-                {% assign font_size = "13px" %}
-              {% else %}
-                {% assign font_size = "15px" %}
-              {% endif %}
-            {% else %}
-              {% assign limit_items = 6 %}
-              {% if task_count > 4 %}
-                {% assign font_size = "11px" %}
-              {% else %}
-                {% assign font_size = "13px" %}
-              {% endif %}
-            {% endif %}
 
-            {% for item in day.tasks limit: limit_items %}
-              {% assign t = item.time %}
-              <div style="font-size: {{ font_size }}; font-weight: 700; line-height: 1.2; border-left: 3px solid black; padding-left: 5px; margin-bottom: 3px;">
-                {% if t and t != "" %}<span style="font-size: 11px; font-weight: 900; background: black; color: white; border-radius: 4px; padding: 0 3px; margin-right: 3px;">{{ t }}</span>{% endif %}{{ item.content }}
+        <!-- Tasks -->
+        <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; overflow: hidden; min-height: 0;">
+          {% if day.tasks.size == 0 %}
+            <div style="font-size: 18px; color: #999; font-style: italic; margin-top: 4px;">Livre</div>
+          {% else %}
+            {% for item in day.tasks limit: 5 %}
+              <div style="font-size: 20px; font-weight: 700; line-height: 1.25; display: flex; gap: 8px;">
+                {% if item.time and item.time != "" %}
+                  <span style="font-size: 15px; font-weight: 700; color: #555; padding-top: 3px; min-width: 45px; text-align: right;">{{ item.time }}</span>
+                {% else %}
+                  <span style="font-size: 15px; color: #aaa; min-width: 15px; text-align: right;">•</span>
+                {% endif %}
+                <span style="flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ item.content }}</span>
               </div>
             {% endfor %}
           {% endif %}
         </div>
       </div>
     {% endfor %}
-
   </div>
 </div>

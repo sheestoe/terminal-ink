@@ -62,8 +62,9 @@ export async function renderToImage(html: string, width: number = 800, height: n
     try {
         await page.setViewport({ width, height });
         await page.goto('about:blank');
-        // networkidle0 forces Puppeteer to wait until all external images and fonts are fully downloaded
-        await page.setContent(html, { waitUntil: "networkidle0" });
+        // networkidle2 forces Puppeteer to wait until most external images and fonts are fully downloaded
+        // but won't hang if a single tracker or pixel fails. 
+        await page.setContent(html, { waitUntil: "networkidle2", timeout: 15000 });
         const image: Uint8Array = await page.screenshot();
         return Buffer.from(image);
     } finally {

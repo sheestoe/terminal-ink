@@ -276,17 +276,21 @@ app.get(ROUTE_PLUGIN_REDIRECT, async (req: Request, res: Response) => {
     });
 });
 
-app.get(ROUTE_IMAGE, async (req: Request, res: Response) => {
-    if (!isSecretKeyValid(req, res)) {
-        return;
+app.get(ROUTE_IMAGE, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        if (!isSecretKeyValid(req, res)) {
+            return;
+        }
+        const format = req.query.format === 'png' ? 'png' : 'bmp';
+        const rotate = parseInt(req.query.rotate as string) || 0;
+        const width = parseInt(req.query.width as string) || 800;
+        const height = parseInt(req.query.height as string) || 480;
+        const imageBuffer = await buildScreen(format, rotate, width, height);
+        res.setHeader('Content-Type', format === 'png' ? 'image/png' : 'image/bmp');
+        res.send(imageBuffer);
+    } catch (e) {
+        next(e);
     }
-    const format = req.query.format === 'png' ? 'png' : 'bmp';
-    const rotate = parseInt(req.query.rotate as string) || 0;
-    const width = parseInt(req.query.width as string) || 800;
-    const height = parseInt(req.query.height as string) || 480;
-    const imageBuffer = await buildScreen(format, rotate, width, height);
-    res.setHeader('Content-Type', format === 'png' ? 'image/png' : 'image/bmp');
-    res.send(imageBuffer);
 })
 
 app.use((req: Request, res: Response) => {

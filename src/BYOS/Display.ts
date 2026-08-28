@@ -46,13 +46,29 @@ export async function displayRoute(macId: string, headers: IncomingHttpHeaders):
     let override = await redis.get('config:override');
     let nextPlugin = override || await redis.lindex('config:rotation', 0) || 'weather';
     let screenTime = await redis.get('config:screen_time:' + nextPlugin);
-    let refreshRate = screenTime ? parseInt(screenTime as string) * 60 : REFRESH_RATE_SECONDS;
+
+    let refreshRateSeconds: number;
+    if (screenTime) {
+        // screen_time is stored in minutes
+        refreshRateSeconds = parseInt(screenTime as string) * 60;
+    } else if ((nextPlugin as string).startsWith('feed')) {
+        // Dynamic board: look up screen_time from config:feed_boards
+        const rawBoards: any = await redis.get('config:feed_boards');
+        let boards: any[] = [];
+        if (typeof rawBoards === 'string') { try { boards = JSON.parse(rawBoards); } catch (e) {} }
+        const board = boards.find((b: any) => b.id === nextPlugin);
+        const boardScreenTime = board?.screen_time ? parseInt(board.screen_time) : 30;
+        refreshRateSeconds = boardScreenTime * 60;
+    } else {
+        // Default fallback: 30 minutes
+        refreshRateSeconds = 30 * 60;
+    }
 
     return {
         status: 0,
-        filename: 'custom-screen-' + await getScreenHash(), // screen wouldn't update if data is not changed
+        filename: 'custom-screen-' + await getScreenHash(),
         image_url: SCREEN_URL,
-        refresh_rate: refreshRate,
+        refresh_rate: refreshRateSeconds,
         reset_firmware: false,
         update_firmware: false,
         firmware_url: '',

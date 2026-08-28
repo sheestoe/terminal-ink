@@ -1,43 +1,40 @@
-﻿<head>
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-</head>
-<div style="background-color: white; width: 800px; height: 480px; padding: 20px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
-  
-  <!-- Header -->
-  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 20px;">
-    <div style="font-size: 36px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
-      <i class="ph ph-newspaper" style="margin-right: 10px;"></i>MANCHETES
+﻿<div style="background-color: white; width: 800px; height: 480px; padding: 22px 28px 18px; box-sizing: border-box; overflow: hidden; font-family: Georgia, 'Times New Roman', serif; color: black; display: flex; flex-direction: column;">
+
+  <!-- Top bar: source names + thin rule -->
+  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+    <div style="font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; font-family: Arial, sans-serif; color: #333;">
+      {% for channel in news %}{{ channel.name }}{% unless forloop.last %}&nbsp;&middot;&nbsp;{% endunless %}{% endfor %}
     </div>
-    <div style="font-size: 20px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
-      Resumo do Dia
+    <div style="font-size: 11px; font-family: Arial, sans-serif; color: #777; letter-spacing: 0.5px;">
+      {{ "now" | date: "%d %b %Y" }}
     </div>
   </div>
+  <div style="border-top: 3px double black; margin-bottom: 18px;"></div>
 
-  <!-- 3 Columns -->
-  <div style="display: flex; gap: 30px; flex: 1;">
-    
+  <!-- Columns -->
+  <div style="display: flex; gap: 0; flex: 1; overflow: hidden;">
     {% for channel in news %}
-    <div style="flex: 1; display: flex; flex-direction: column;">
-      
-      <!-- Channel Title -->
-      <div style="font-size: 20px; font-weight: 800; text-transform: uppercase; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 15px;">
+    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;{% unless forloop.first %} border-left: 1px solid #bbb; margin-left: 20px; padding-left: 20px;{% endunless %}">
+
+      <!-- Column header -->
+      <div style="font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-family: Arial, sans-serif; color: #555; margin-bottom: 12px;">
         {{ channel.name }}
       </div>
 
-      <!-- News Items -->
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        {% for item in channel.items limit: 4 %}
-        <div style="display: flex; gap: 8px;">
-          <div style="font-size: 16px; margin-top: 2px;"><i class="ph-fill ph-caret-right"></i></div>
-          <div style="font-size: 17px; font-weight: 600; line-height: 1.2;">
-            {{ item.title }}
-          </div>
-        </div>
-        {% endfor %}
+      <!-- Items -->
+      {% for item in channel.items limit: 4 %}
+      <div style="margin-bottom: 10px;{% unless forloop.last %} padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;{% endunless %}">
+        <div style="font-size: 15.5px; font-weight: bold; line-height: 1.3; color: #000;">{{ item.title }}</div>
       </div>
-      
+      {% endfor %}
+
     </div>
     {% endfor %}
-
   </div>
+
+  <!-- Bottom rule -->
+  <div style="border-top: 1px solid black; margin-top: 14px; padding-top: 5px; display: flex; justify-content: flex-end;">
+    <div style="font-size: 9px; font-family: Arial, sans-serif; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa;">terminal-ink</div>
+  </div>
+
 </div>

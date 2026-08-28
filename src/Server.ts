@@ -224,7 +224,25 @@ app.get('/api/auth/google/callback', async (req: Request, res: Response) => {
 
 // Kindle-compatible display endpoint — matches what TRMNL.sh expects
 app.get('/api/display', async (req: Request, res: Response) => {
-    const refresh_rate = await redis.get('config:refresh_rate') || REFRESH_RATE_SECONDS;
+    let override = await redis.get('config:override');
+    let nextPlugin = override || await redis.lindex('config:rotation', 0) || 'weather';
+    let screenTime = await redis.get('config:screen_time:' + nextPlugin);
+    
+    let refresh_rate = REFRESH_RATE_SECONDS;
+    if (screenTime) {
+        refresh_rate = parseInt(screenTime as string) * 60;
+    } else if ((nextPlugin as string).startsWith('feed')) {
+        const rawBoards: any = await redis.get('config:feed_boards');
+        let boards: any[] = [];
+        if (typeof rawBoards === 'string') { try { boards = JSON.parse(rawBoards); } catch (e) {} }
+        const board = boards.find((b: any) => b.id === nextPlugin);
+        const boardScreenTime = board?.screen_time ? parseInt(board.screen_time) : 30;
+        refresh_rate = boardScreenTime * 60;
+    } else {
+        const globalRefresh = await redis.get('config:refresh_rate');
+        refresh_rate = globalRefresh ? Number(globalRefresh) : 30 * 60;
+    }
+
     const hash = await getScreenHash();
     
     const deviceId = req.headers['id'] || 'default';

@@ -159,6 +159,40 @@ app.post('/api/web/sync-now', async (req: Request, res: Response) => {
     res.json({ success: true });
 });
 
+// Debug endpoint — shows what refresh_rate would be sent to KOReader right now
+app.get('/api/web/debug-display', async (req: Request, res: Response) => {
+    if (!isSecretKeyValid(req, res)) return;
+    const rotation = await redis.lrange('config:rotation', 0, -1) || [];
+    const nextPlugin = await redis.lindex('config:rotation', 0) || 'weather';
+    const screenTimeRaw = await redis.get('config:screen_time:' + nextPlugin);
+    
+    let refreshRateSeconds: number;
+    let source: string;
+    if (screenTimeRaw) {
+        refreshRateSeconds = parseInt(screenTimeRaw as string) * 60;
+        source = `config:screen_time:${nextPlugin} = ${screenTimeRaw} min`;
+    } else if ((nextPlugin as string).startsWith('feed')) {
+        const rawBoards: any = await redis.get('config:feed_boards');
+        let boards: any[] = [];
+        if (typeof rawBoards === 'string') { try { boards = JSON.parse(rawBoards); } catch (e) {} }
+        const board = boards.find((b: any) => b.id === nextPlugin);
+        const boardScreenTime = board?.screen_time ? parseInt(board.screen_time) : 30;
+        refreshRateSeconds = boardScreenTime * 60;
+        source = `config:feed_boards[${nextPlugin}].screen_time = ${boardScreenTime} min`;
+    } else {
+        refreshRateSeconds = 30 * 60;
+        source = 'default fallback 30 min';
+    }
+
+    res.json({
+        rotation,
+        nextPlugin,
+        refresh_rate_seconds: refreshRateSeconds,
+        refresh_rate_minutes: refreshRateSeconds / 60,
+        source,
+    });
+});
+
 // Google OAuth routes — must be registered BEFORE BYOS middleware
 const oauth2Client = new google.auth.OAuth2(
     process.env['GOOGLE_CLIENT_ID'],

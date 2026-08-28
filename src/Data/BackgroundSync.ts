@@ -216,7 +216,23 @@ export async function syncFeedBoards() {
 
     const fetchFeed = async (url: string, name: string) => {
         try {
-            const feed = await parser.parseURL(url);
+            const res = await fetch(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'application/rss+xml, application/rdf+xml, application/atom+xml, application/xml, text/xml, */*'
+                }
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const buf = await res.arrayBuffer();
+            let text = new TextDecoder('utf-8').decode(buf);
+            
+            // Global fix for accents: decode as ISO-8859-1 if the XML declares it
+            // (Common in Brazilian feeds like Folha de S.Paulo)
+            if (text.match(/encoding=["']?(iso-8859-1|windows-1252)["']?/i)) {
+                text = new TextDecoder('iso-8859-1').decode(buf);
+            }
+            
+            const feed = await parser.parseString(text);
             return {
                 name,
                 items: feed.items.slice(0, 4).map(item => ({

@@ -1,23 +1,23 @@
 ﻿<style>
 @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
 </style>
-<div lang="pt-BR" style="background-color: white; width: 800px; height: 480px; padding: 18px 24px; box-sizing: border-box; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: black; display: flex; flex-direction: column;">
+<div lang="pt-BR" style="background-color: white; width: 800px; height: 480px; padding: 12px 24px 10px; box-sizing: border-box; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: black; display: flex; flex-direction: column;">
 
   <!-- Columns -->
   <div style="display: flex; gap: 0; flex: 1; overflow: hidden;">
     {% for channel in news %}
-    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;{% unless forloop.first %} border-left: 2px solid #ccc; margin-left: 20px; padding-left: 20px;{% endunless %}">
+    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;{% unless forloop.first %} border-left: 1px solid #ccc; margin-left: 20px; padding-left: 20px;{% endunless %}">
 
       <!-- Column header -->
-      <div style="font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #111; margin-bottom: 10px; border-bottom: 3px double black; padding-bottom: 4px; text-align: center; flex-shrink: 0;">
+      <div style="font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #111; margin-bottom: 6px; border-bottom: 2px solid black; padding-bottom: 4px; text-align: center; flex-shrink: 0;">
         {{ channel.name }}
       </div>
 
       <!-- Items -->
-      <div style="display: flex; flex-direction: column; gap: 10px; flex: 1; overflow: hidden;">
+      <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; overflow: hidden;">
         {% for item in channel.items limit: 4 %}
-        <div style="{% unless forloop.last %}padding-bottom: 10px; border-bottom: 2px dotted #bbb;{% endunless %}">
-          <div style="font-size: 19px; font-weight: 700; line-height: 1.35; color: #000; text-align: left; word-spacing: 0px; letter-spacing: -0.2px;">
+        <div style="{% unless forloop.last %}padding-bottom: 6px; border-bottom: 1px solid #ccc;{% endunless %}">
+          <div style="font-size: 18px; font-weight: 700; line-height: 1.25; color: #000; text-align: left; word-spacing: 0px; letter-spacing: -0.2px;">
             {{ item.title }}
           </div>
         </div>
@@ -29,11 +29,11 @@
   </div>
 
   <!-- Bottom rule -->
-  <div style="border-top: 3px solid black; margin-top: auto; padding-top: 8px; padding-bottom: 2px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
-    <div style="font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: black;">
+  <div style="border-top: 2px solid black; margin-top: auto; padding-top: 6px; padding-bottom: 0px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+    <div style="font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: black;">
       terminal-ink
     </div>
-    <div style="font-size: 14px; font-weight: 700; color: black; text-transform: uppercase;">
+    <div style="font-size: 13px; font-weight: 700; color: black; text-transform: uppercase;">
       ATUALIZADO: {{ "now" | date: "%d/%m %H:%M" }}
     </div>
   </div>

@@ -12,23 +12,23 @@
     font-style: normal;
 }
 </style>
-<div lang="pt-BR" style="background-color: white; width: 800px; height: 480px; padding: 18px 24px 16px; box-sizing: border-box; overflow: hidden; font-family: 'OpenDyslexic', sans-serif; color: black; display: flex; flex-direction: column;">
+<div lang="pt-BR" style="background-color: white; width: 800px; height: 480px; padding: 12px 24px; box-sizing: border-box; overflow: hidden; font-family: 'OpenDyslexic', sans-serif; color: black; display: flex; flex-direction: column;">
 
   <!-- Columns -->
   <div style="display: flex; gap: 0; flex: 1; overflow: hidden;">
     {% for channel in news %}
     <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;{% unless forloop.first %} border-left: 2px solid #ccc; margin-left: 20px; padding-left: 20px;{% endunless %}">
 
-      <!-- Column header (Bigger now) -->
-      <div style="font-size: 16px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; color: #111; margin-bottom: 10px; border-bottom: 3px double black; padding-bottom: 6px; text-align: center;">
+      <!-- Column header -->
+      <div style="font-size: 15px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; color: #111; margin-bottom: 8px; border-bottom: 3px double black; padding-bottom: 4px; text-align: center; flex-shrink: 0;">
         {{ channel.name }}
       </div>
 
       <!-- Items -->
-      <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+      <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden;">
         {% for item in channel.items limit: 4 %}
-        <div style="{% unless forloop.last %}padding-bottom: 8px; border-bottom: 2px dashed #aaa;{% endunless %}">
-          <div style="font-size: 17px; font-weight: bold; line-height: 1.25; color: #000; text-align: justify; hyphens: auto; -webkit-hyphens: auto; word-spacing: -1px;">
+        <div style="{% unless forloop.last %}padding-bottom: 6px; border-bottom: 2px dashed #aaa;{% endunless %}">
+          <div style="font-size: 16px; font-weight: bold; line-height: 1.25; color: #000; text-align: justify; hyphens: auto; -webkit-hyphens: auto; word-spacing: -1px;">
             {{ item.title }}
           </div>
         </div>
@@ -40,7 +40,7 @@
   </div>
 
   <!-- Bottom rule -->
-  <div style="border-top: 2px solid black; margin-top: 10px; padding-top: 5px; display: flex; justify-content: space-between; align-items: center;">
+  <div style="border-top: 2px solid black; margin-top: auto; padding-top: 6px; padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
     <div style="font-size: 10px; font-family: sans-serif; letter-spacing: 1.5px; text-transform: uppercase; color: #999;">
       terminal-ink
     </div>

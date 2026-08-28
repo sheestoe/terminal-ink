@@ -34,8 +34,18 @@ body { margin: 0; padding: 0; overflow: hidden; background: white; }
 <!-- JavaScript Auto-Fitter for perfectly dynamic fonts -->
 <script>
   const containers = document.querySelectorAll('.items-container');
+  const numColumns = containers.length;
+  
+  // Decide the starting max font size based on how much width we have
+  let startFontSize = 30; // default for 3+ columns
+  if (numColumns === 1) {
+    startFontSize = 46; // massive font if only 1 feed taking the whole screen
+  } else if (numColumns === 2) {
+    startFontSize = 36; // very large font for 2 feeds
+  }
+
   containers.forEach(container => {
-    let fontSize = 28; // Start with a massive font size
+    let fontSize = startFontSize;
     const titles = container.querySelectorAll('.news-title');
     const setSize = (size) => titles.forEach(t => t.style.fontSize = size + 'px');
     

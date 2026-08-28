@@ -6,26 +6,30 @@ body { margin: 0; padding: 0; overflow: hidden; background: white; }
 
   <!-- Columns -->
   <div style="display: flex; gap: 0; flex: 1; overflow: hidden; min-height: 0;">
+    {% assign first_column = true %}
     {% for channel in news %}
-    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; {% unless forloop.first %} border-left: 1px solid #ccc; margin-left: 16px; padding-left: 16px;{% endunless %}">
+      {% if channel.items.size > 0 %}
+        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; {% if first_column == false %} border-left: 1px solid #ccc; margin-left: 16px; padding-left: 16px;{% endif %}">
 
-      <!-- Column header -->
-      <div style="font-size: 16px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #111; margin-bottom: 8px; border-bottom: 2px solid black; padding-bottom: 4px; text-align: center; flex-shrink: 0;">
-        {{ channel.name }}
-      </div>
-
-      <!-- Items -->
-      <div class="items-container" style="display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; min-height: 0;">
-        {% for item in channel.items limit: 4 %}
-        <div style="{% unless forloop.last %}padding-bottom: 8px; border-bottom: 1px solid #ccc;{% endunless %}">
-          <div class="news-title" style="font-weight: 700; line-height: 1.15; color: #000; text-align: left; word-spacing: 0px; letter-spacing: 0.5px;">
-            {{ item.title }}
+          <!-- Column header -->
+          <div style="font-size: 16px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #111; margin-bottom: 8px; border-bottom: 2px solid black; padding-bottom: 4px; text-align: center; flex-shrink: 0;">
+            {{ channel.name }}
           </div>
-        </div>
-        {% endfor %}
-      </div>
 
-    </div>
+          <!-- Items -->
+          <div class="items-container" style="display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; min-height: 0;">
+            {% for item in channel.items limit: 4 %}
+            <div style="{% unless forloop.last %}padding-bottom: 8px; border-bottom: 1px solid #ccc;{% endunless %}">
+              <div class="news-title" style="font-weight: 700; line-height: 1.15; color: #000; text-align: left; word-spacing: 0px; letter-spacing: 0.5px;">
+                {{ item.title }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+        </div>
+        {% assign first_column = false %}
+      {% endif %}
     {% endfor %}
   </div>
 

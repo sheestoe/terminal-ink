@@ -1,102 +1,100 @@
 ﻿<head>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+    body { margin: 0; padding: 0; overflow: hidden; background: white; }
+  </style>
 </head>
-<div style="background-color: white; width: 800px; height: 480px; padding: 20px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; align-items: center; justify-content: center;">
+<div lang="pt-BR" style="background-color: white; width: 800px; height: 480px; padding: 20px 30px; box-sizing: border-box; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: black; display: flex; flex-direction: column;">
   
-  <div style="width: 760px; height: 440px; border: 6px solid black; border-radius: 30px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 8px 8px 0px black; position: relative;">
+  {% capture weatherIcon %}
+    {% case data.current.weather_code %}
+      {% when 0 %}ph-sun
+      {% when 1 or 2 %}ph-cloud-sun
+      {% when 3 %}ph-cloud
+      {% when 45 or 48 %}ph-cloud-fog
+      {% when 51 or 53 or 55 or 56 or 57 %}ph-cloud-drizzle
+      {% when 61 or 63 or 65 or 66 or 67 %}ph-cloud-rain
+      {% when 71 or 73 or 75 or 77 %}ph-cloud-snow
+      {% when 80 or 81 or 82 %}ph-cloud-rain
+      {% when 85 or 86 %}ph-cloud-snow
+      {% when 95 or 96 or 99 %}ph-cloud-lightning
+      {% else %}ph-cloud
+    {% endcase %}
+  {% endcapture %}
+
+  {% assign isAlert = false %}
+  {% if data.current.weather_code >= 95 %}
+    {% assign isAlert = true %}
+  {% endif %}
+
+  <!-- Top Info Section -->
+  <div style="flex: 1; display: flex; justify-content: space-between; padding-bottom: 20px; border-bottom: 5px solid black;">
     
-    {% capture weatherIcon %}
-      {% case data.current.weather_code %}
-        {% when 0 %}ph-sun
-        {% when 1 or 2 %}ph-cloud-sun
-        {% when 3 %}ph-cloud
-        {% when 45 or 48 %}ph-cloud-fog
-        {% when 51 or 53 or 55 or 56 or 57 %}ph-cloud-drizzle
-        {% when 61 or 63 or 65 or 66 or 67 %}ph-cloud-rain
-        {% when 71 or 73 or 75 or 77 %}ph-cloud-snow
-        {% when 80 or 81 or 82 %}ph-cloud-rain
-        {% when 85 or 86 %}ph-cloud-snow
-        {% when 95 or 96 or 99 %}ph-cloud-lightning
-        {% else %}ph-cloud
-      {% endcase %}
-    {% endcapture %}
-
-    {% assign isAlert = false %}
-    {% if data.current.weather_code >= 95 %}
-      {% assign isAlert = true %}
-    {% endif %}
-
-    <!-- Top Info Section -->
-    <div style="flex: 1; display: flex; justify-content: space-between; padding: 30px; border-bottom: 6px solid black;">
-      
-      <!-- Left side: Icon and Temp -->
-      <div style="display: flex; gap: 20px; align-items: center;">
-        <i class="ph {{ weatherIcon | strip }}" style="font-size: 140px;"></i>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div style="display: flex; align-items: baseline; gap: 5px;">
-            <div style="font-size: 110px; font-weight: 900; letter-spacing: -3px; line-height: 1;">{{ data.current.temperature_2m | round }}°</div>
-          </div>
-          <div style="font-size: 28px; font-weight: 800; text-transform: uppercase;">
-            {% case data.current.weather_code %}
-              {% when 0 %}Céu Limpo
-              {% when 1 or 2 or 3 %}Nublado
-              {% when 45 or 48 %}Neblina
-              {% when 51 or 53 or 55 or 56 or 57 %}Chuvisco
-              {% when 61 or 63 or 65 or 66 or 67 %}Chuva
-              {% when 71 or 73 or 75 or 77 %}Neve
-              {% when 80 or 81 or 82 %}Pancadas
-              {% when 95 or 96 or 99 %}Tempestade
-              {% else %}Indefinido
-            {% endcase %}
-          </div>
+    <!-- Left side: Icon and Temp -->
+    <div style="display: flex; gap: 20px; align-items: center;">
+      <i class="ph-fill {{ weatherIcon | strip }}" style="font-size: 180px;"></i>
+      <div style="display: flex; flex-direction: column; justify-content: center;">
+        <div style="display: flex; align-items: baseline; gap: 5px;">
+          <div style="font-size: 140px; font-weight: 700; letter-spacing: -4px; line-height: 0.9;">{{ data.current.temperature_2m | round }}°</div>
+        </div>
+        <div style="font-size: 34px; font-weight: 700; text-transform: uppercase;">
+          {% case data.current.weather_code %}
+            {% when 0 %}Céu Limpo
+            {% when 1 or 2 or 3 %}Nublado
+            {% when 45 or 48 %}Neblina
+            {% when 51 or 53 or 55 or 56 or 57 %}Chuvisco
+            {% when 61 or 63 or 65 or 66 or 67 %}Chuva
+            {% when 71 or 73 or 75 or 77 %}Neve
+            {% when 80 or 81 or 82 %}Pancadas
+            {% when 95 or 96 or 99 %}Tempestade
+            {% else %}Indefinido
+          {% endcase %}
         </div>
       </div>
-
-      <!-- Right side: Details -->
-      <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right; justify-content: space-between;">
-        <div>
-          <div style="font-size: 42px; font-weight: 900; line-height: 1;">Marília</div>
-          <div style="font-size: 24px; font-weight: bold;">SP</div>
-        </div>
-        
-        <div style="display: flex; flex-direction: column; gap: 5px; font-size: 20px; font-weight: 600;">
-          <div><i class="ph ph-drop"></i> Chuva Hoje: {{ data.daily.precipitation_probability_max[0] }}%</div>
-          <div><i class="ph ph-waves"></i> Umidade: {{ data.current.relative_humidity_2m }}%</div>
-          <div><i class="ph ph-thermometer"></i> Sensação: {{ data.current.apparent_temperature | round }}°</div>
-        </div>
-      </div>
-      
     </div>
 
-    <!-- Alert Banner (Only shows if thunderstorm) -->
-    {% if isAlert %}
-    <div style="background-color: black; color: white; text-align: center; font-size: 22px; font-weight: bold; padding: 10px; text-transform: uppercase; letter-spacing: 2px;">
-      <i class="ph ph-warning"></i> ALERTA METEOROLÓGICO: TEMPESTADE SEVERA <i class="ph ph-warning"></i>
-    </div>
-    {% endif %}
-
-    <!-- Bottom Section (Forecast) -->
-    <div style="height: 120px; display: flex; background-color: white;">
+    <!-- Right side: Details -->
+    <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right; justify-content: center; gap: 10px;">
+      <div style="font-size: 50px; font-weight: 700; line-height: 1; text-transform: uppercase; margin-bottom: 5px;">Marília</div>
       
-      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 4px solid black;">
-        <div style="font-size: 20px; font-weight: bold; text-transform: uppercase;">Amanhã</div>
-        <div style="font-size: 28px; font-weight: 900; margin: 5px 0;">{{ data.daily.temperature_2m_max[1] | round }}° / {{ data.daily.temperature_2m_min[1] | round }}°</div>
-        <div style="font-size: 18px; font-weight: 600;"><i class="ph ph-drop"></i> {{ data.daily.precipitation_probability_max[1] }}% de chuva</div>
+      <div style="display: flex; flex-direction: column; gap: 8px; font-size: 26px; font-weight: 700;">
+        <div><i class="ph-fill ph-drop" style="color: #444;"></i> Chuva: {{ data.daily.precipitation_probability_max[0] }}%</div>
+        <div><i class="ph-fill ph-waves" style="color: #444;"></i> Umidade: {{ data.current.relative_humidity_2m }}%</div>
+        <div><i class="ph-fill ph-thermometer" style="color: #444;"></i> Sensação: {{ data.current.apparent_temperature | round }}°</div>
       </div>
+    </div>
+    
+  </div>
 
-      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 4px solid black;">
-        <div style="font-size: 20px; font-weight: bold; text-transform: uppercase;">Depois</div>
-        <div style="font-size: 28px; font-weight: 900; margin: 5px 0;">{{ data.daily.temperature_2m_max[2] | round }}° / {{ data.daily.temperature_2m_min[2] | round }}°</div>
-        <div style="font-size: 18px; font-weight: 600;"><i class="ph ph-drop"></i> {{ data.daily.precipitation_probability_max[2] }}% de chuva</div>
-      </div>
+  <!-- Alert Banner (Only shows if thunderstorm) -->
+  {% if isAlert %}
+  <div style="background-color: black; color: white; text-align: center; font-size: 26px; font-weight: 700; padding: 10px; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px;">
+    <i class="ph-fill ph-warning"></i> ALERTA DE TEMPESTADE <i class="ph-fill ph-warning"></i>
+  </div>
+  {% endif %}
 
-      <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: black; color: white;">
-        <div style="font-size: 20px; font-weight: bold; text-transform: uppercase;">Em 3 dias</div>
-        <div style="font-size: 28px; font-weight: 900; margin: 5px 0;">{{ data.daily.temperature_2m_max[3] | round }}° / {{ data.daily.temperature_2m_min[3] | round }}°</div>
-        <div style="font-size: 18px; font-weight: 600;"><i class="ph ph-drop"></i> {{ data.daily.precipitation_probability_max[3] }}% de chuva</div>
-      </div>
+  <!-- Bottom Section (Forecast) -->
+  <div style="height: 160px; display: flex; margin-top: 15px; padding-top: 5px;">
+    
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 3px solid #ccc;">
+      <div style="font-size: 24px; font-weight: 700; text-transform: uppercase; color: #555;">Amanhã</div>
+      <div style="font-size: 38px; font-weight: 700; margin: 5px 0;">{{ data.daily.temperature_2m_max[1] | round }}° <span style="color:#666; font-size:30px;">/ {{ data.daily.temperature_2m_min[1] | round }}°</span></div>
+      <div style="font-size: 24px; font-weight: 700; color: #333;"><i class="ph-fill ph-drop"></i> {{ data.daily.precipitation_probability_max[1] }}%</div>
+    </div>
 
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 3px solid #ccc;">
+      <div style="font-size: 24px; font-weight: 700; text-transform: uppercase; color: #555;">Depois</div>
+      <div style="font-size: 38px; font-weight: 700; margin: 5px 0;">{{ data.daily.temperature_2m_max[2] | round }}° <span style="color:#666; font-size:30px;">/ {{ data.daily.temperature_2m_min[2] | round }}°</span></div>
+      <div style="font-size: 24px; font-weight: 700; color: #333;"><i class="ph-fill ph-drop"></i> {{ data.daily.precipitation_probability_max[2] }}%</div>
+    </div>
+
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: black; color: white; border-radius: 12px; margin-left: 10px;">
+      <div style="font-size: 24px; font-weight: 700; text-transform: uppercase;">Em 3 dias</div>
+      <div style="font-size: 38px; font-weight: 700; margin: 5px 0;">{{ data.daily.temperature_2m_max[3] | round }}° <span style="color:#aaa; font-size:30px;">/ {{ data.daily.temperature_2m_min[3] | round }}°</span></div>
+      <div style="font-size: 24px; font-weight: 700;"><i class="ph-fill ph-drop"></i> {{ data.daily.precipitation_probability_max[3] }}%</div>
     </div>
 
   </div>
+
 </div>

@@ -5,34 +5,34 @@ body { margin: 0; padding: 0; overflow: hidden; background: white; }
 <div lang="pt-BR" style="background-color: white; width: 800px; height: 480px; padding: 12px 24px; box-sizing: border-box; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: black; display: flex; flex-direction: column;">
   
   <!-- Header -->
-  <div style="font-size: 24px; font-weight: 700; text-transform: uppercase; border-bottom: 4px solid black; padding-bottom: 6px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-end; flex-shrink: 0;">
+  <div style="font-size: 24px; font-weight: 700; text-transform: uppercase; border-bottom: 4px solid black; padding-bottom: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end; flex-shrink: 0;">
     <span style="letter-spacing: 1.5px;">Agenda</span>
-    <span style="font-size: 14px; font-weight: 700; color: #666; letter-spacing: 1px;">Todoist</span>
+    <span style="font-size: 16px; font-weight: 700; color: #666; letter-spacing: 1px;">Todoist</span>
   </div>
 
   <!-- 2x2 Grid for 4 Days -->
-  <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 16px 32px; flex: 1; min-height: 0;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px 32px; flex: 1; min-height: 0;">
     {% for day in agenda limit: 4 %}
       <div style="display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
         
         <!-- Day Title -->
-        <div style="font-size: 20px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: baseline; gap: 8px; border-bottom: 2px solid #ccc; padding-bottom: 4px; flex-shrink: 0;">
+        <div style="font-size: 24px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: baseline; gap: 8px; border-bottom: 3px solid #ccc; padding-bottom: 4px; flex-shrink: 0;">
           <span style="color: #000;">{{ day.dayName }}</span>
           {% assign parts = day.date | split: "-" %}
-          <span style="font-size: 16px; color: #666;">{{ parts[2] }}/{{ parts[1] }}</span>
+          <span style="font-size: 18px; color: #666;">{{ parts[2] }}/{{ parts[1] }}</span>
         </div>
 
         <!-- Tasks -->
-        <div style="display: flex; flex-direction: column; gap: 6px; flex: 1; overflow: hidden; min-height: 0;">
+        <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; min-height: 0;">
           {% if day.tasks.size == 0 %}
-            <div style="font-size: 18px; color: #999; font-style: italic; margin-top: 4px;">Livre</div>
+            <div style="font-size: 22px; color: #999; font-style: italic; margin-top: 4px;">Livre</div>
           {% else %}
-            {% for item in day.tasks limit: 5 %}
-              <div style="font-size: 20px; font-weight: 700; line-height: 1.25; display: flex; gap: 8px;">
+            {% for item in day.tasks limit: 4 %}
+              <div style="font-size: 26px; font-weight: 700; line-height: 1.15; display: flex; gap: 10px;">
                 {% if item.time and item.time != "" %}
-                  <span style="font-size: 15px; font-weight: 700; color: #555; padding-top: 3px; min-width: 45px; text-align: right;">{{ item.time }}</span>
+                  <span style="font-size: 20px; font-weight: 700; color: #555; padding-top: 4px; min-width: 55px; text-align: right;">{{ item.time }}</span>
                 {% else %}
-                  <span style="font-size: 15px; color: #aaa; min-width: 15px; text-align: right;">•</span>
+                  <span style="font-size: 20px; color: #aaa; min-width: 20px; text-align: right;">•</span>
                 {% endif %}
                 <span style="flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ item.content }}</span>
               </div>

@@ -1,71 +1,31 @@
-<head>
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-</head>
-<div style="background-color: white; width: 800px; height: 480px; padding: 20px; box-sizing: border-box; overflow: hidden; font-family: sans-serif; color: black; display: flex; flex-direction: column;">
+﻿<style>
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+body { margin: 0; padding: 0; overflow: hidden; background: white; }
+</style>
+<div lang="pt-BR" style="background-color: white; width: 800px; height: 480px; padding: 12px 24px; box-sizing: border-box; overflow: hidden; font-family: 'Atkinson Hyperlegible', sans-serif; color: black; display: flex; flex-direction: column;">
   
   <!-- Header -->
-  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 5px solid black; padding-bottom: 10px; margin-bottom: 15px;">
-    <div style="font-size: 36px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;">
-      <i class="ph-fill ph-check-square-offset" style="margin-right: 10px;"></i>TAREFAS
-    </div>
-    <div style="font-size: 20px; font-weight: bold; padding: 5px 15px; background: black; color: white; border-radius: 15px;">
-      Todoist
-    </div>
+  <div style="font-size: 24px; font-weight: 700; text-transform: uppercase; border-bottom: 4px solid black; padding-bottom: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end; flex-shrink: 0;">
+    <span style="letter-spacing: 1.5px;">Tarefas</span>
+    <span style="font-size: 16px; font-weight: 700; color: #666; letter-spacing: 1px;">Todoist</span>
   </div>
 
   <!-- Dynamic Flex Columns -->
-  <div style="display: flex; gap: 15px; flex: 1; align-items: stretch; width: 100%;">
-    
+  <div style="display: flex; gap: 32px; flex: 1; align-items: stretch; width: 100%; min-height: 0;">
     {% for project in projects limit: 3 %}
-      {% assign task_count = project.tasks | size %}
-      
-      {% if screen_height and screen_height > 500 %}
-        {% if task_count > 7 %}
-          {% assign box_flex = 2 %}
-          {% assign inner_cols = 2 %}
-          {% assign font_size = "15px" %}
-          {% assign icon_size = "16px" %}
-          {% assign pad = "6px" %}
-          {% assign limit_tasks = 16 %}
-        {% else %}
-          {% assign box_flex = 1 %}
-          {% assign inner_cols = 1 %}
-          {% assign font_size = "18px" %}
-          {% assign icon_size = "19px" %}
-          {% assign pad = "8px" %}
-          {% assign limit_tasks = 7 %}
-        {% endif %}
-      {% else %}
-        {% if task_count > 5 %}
-          {% assign box_flex = 2 %}
-          {% assign inner_cols = 2 %}
-          {% assign font_size = "15px" %}
-          {% assign icon_size = "16px" %}
-          {% assign pad = "6px" %}
-          {% assign limit_tasks = 12 %}
-        {% else %}
-          {% assign box_flex = 1 %}
-          {% assign inner_cols = 1 %}
-          {% assign font_size = "17px" %}
-          {% assign icon_size = "18px" %}
-          {% assign pad = "8px" %}
-          {% assign limit_tasks = 5 %}
-        {% endif %}
-      {% endif %}
-
-    <div style="flex: {{ box_flex }}; display: flex; flex-direction: column; background-color: #f8f8f8; border: 4px solid black; border-radius: 20px; padding: 10px; box-shadow: 6px 6px 0px black; box-sizing: border-box; overflow: hidden;">
+    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; {% unless forloop.first %} border-left: 1px solid #ccc; padding-left: 32px;{% endunless %}">
       
       <!-- Project Title -->
-      <div style="font-size: 20px; font-weight: 900; text-transform: uppercase; border-bottom: 3px solid black; padding-bottom: 5px; margin-bottom: 10px; text-align: center; flex-shrink: 0;">
+      <div style="font-size: 20px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; flex-shrink: 0;">
         {{ project.name }}
       </div>
 
       <!-- Task Items -->
-      <div style="column-count: {{ inner_cols }}; column-gap: 10px; flex: 1;">
-        {% for item in project.tasks limit: limit_tasks %}
-        <div style="break-inside: avoid; display: flex; gap: 8px; align-items: flex-start; background: white; padding: {{ pad }}; border: 2px solid black; border-radius: 10px; margin-bottom: 8px;">
-          <div style="font-size: {{ icon_size }}; margin-top: 2px; flex-shrink: 0;"><i class="ph-fill ph-circle"></i></div>
-          <div style="font-size: {{ font_size }}; font-weight: 700; line-height: 1.1; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+      <div class="items-container" style="display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; min-height: 0;">
+        {% for item in project.tasks limit: 8 %}
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <div style="font-size: 18px; margin-top: 4px; flex-shrink: 0; color: #666;">•</div>
+          <div class="task-title" style="font-weight: 700; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
             {{ item.content }}
           </div>
         </div>
@@ -74,6 +34,21 @@
       
     </div>
     {% endfor %}
-
   </div>
 </div>
+
+<script>
+  const containers = document.querySelectorAll('.items-container');
+  containers.forEach(container => {
+    let fontSize = 28;
+    const titles = container.querySelectorAll('.task-title');
+    const setSize = (size) => titles.forEach(t => t.style.fontSize = size + 'px');
+    
+    setSize(fontSize);
+    
+    while (container.scrollHeight > container.clientHeight && fontSize > 14) {
+      fontSize--;
+      setSize(fontSize);
+    }
+  });
+</script>

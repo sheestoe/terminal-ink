@@ -9,7 +9,7 @@
     <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;{% unless forloop.first %} border-left: 2px solid #ccc; margin-left: 20px; padding-left: 20px;{% endunless %}">
 
       <!-- Column header -->
-      <div style="font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #222; margin-bottom: 10px; border-bottom: 3px double black; padding-bottom: 4px; text-align: center; flex-shrink: 0;">
+      <div style="font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #111; margin-bottom: 10px; border-bottom: 3px double black; padding-bottom: 4px; text-align: center; flex-shrink: 0;">
         {{ channel.name }}
       </div>
 
@@ -29,12 +29,12 @@
   </div>
 
   <!-- Bottom rule -->
-  <div style="border-top: 2px solid black; margin-top: auto; padding-top: 6px; padding-bottom: 2px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
-    <div style="font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #999;">
+  <div style="border-top: 3px solid black; margin-top: auto; padding-top: 8px; padding-bottom: 2px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+    <div style="font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: black;">
       terminal-ink
     </div>
-    <div style="font-size: 11px; color: #666; font-weight: 700;">
-      Atualizado: {{ "now" | date: "%d/%m %H:%M" }}
+    <div style="font-size: 14px; font-weight: 700; color: black; text-transform: uppercase;">
+      ATUALIZADO: {{ "now" | date: "%d/%m %H:%M" }}
     </div>
   </div>
 

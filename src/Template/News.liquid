@@ -7,24 +7,6 @@ body { margin: 0; padding: 0; overflow: hidden; background: white; }
   <!-- Columns -->
   <div style="display: flex; gap: 0; flex: 1; overflow: hidden; min-height: 0;">
     {% for channel in news %}
-    
-    <!-- Calc Dynamic Font Size based on text length -->
-    {% assign total_chars = 0 %}
-    {% for item in channel.items limit: 4 %}
-      {% assign title_size = item.title | size %}
-      {% assign total_chars = total_chars | plus: title_size %}
-    {% endfor %}
-
-    {% if total_chars > 340 %}
-      {% assign dynamic_font = "18px" %}
-    {% elsif total_chars > 260 %}
-      {% assign dynamic_font = "20px" %}
-    {% elsif total_chars > 180 %}
-      {% assign dynamic_font = "22px" %}
-    {% else %}
-      {% assign dynamic_font = "24px" %}
-    {% endif %}
-
     <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; {% unless forloop.first %} border-left: 1px solid #ccc; margin-left: 16px; padding-left: 16px;{% endunless %}">
 
       <!-- Column header -->
@@ -33,10 +15,10 @@ body { margin: 0; padding: 0; overflow: hidden; background: white; }
       </div>
 
       <!-- Items -->
-      <div style="display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; min-height: 0;">
+      <div class="items-container" style="display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; min-height: 0;">
         {% for item in channel.items limit: 4 %}
         <div style="{% unless forloop.last %}padding-bottom: 8px; border-bottom: 1px solid #ccc;{% endunless %}">
-          <div style="font-size: {{ dynamic_font }}; font-weight: 700; line-height: 1.15; color: #000; text-align: left; word-spacing: 0px; letter-spacing: 0.5px;">
+          <div class="news-title" style="font-weight: 700; line-height: 1.15; color: #000; text-align: left; word-spacing: 0px; letter-spacing: 0.5px;">
             {{ item.title }}
           </div>
         </div>
@@ -48,3 +30,21 @@ body { margin: 0; padding: 0; overflow: hidden; background: white; }
   </div>
 
 </div>
+
+<!-- JavaScript Auto-Fitter for perfectly dynamic fonts -->
+<script>
+  const containers = document.querySelectorAll('.items-container');
+  containers.forEach(container => {
+    let fontSize = 28; // Start with a massive font size
+    const titles = container.querySelectorAll('.news-title');
+    const setSize = (size) => titles.forEach(t => t.style.fontSize = size + 'px');
+    
+    setSize(fontSize);
+    
+    // Loop: if the content overflows the container height, shrink the font 1px at a time
+    while (container.scrollHeight > container.clientHeight && fontSize > 14) {
+      fontSize--;
+      setSize(fontSize);
+    }
+  });
+</script>
